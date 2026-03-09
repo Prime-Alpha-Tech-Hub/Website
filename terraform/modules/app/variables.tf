@@ -1,5 +1,5 @@
-variable "array"{
-    type = list(string)
+variable "subnet"{
+    type = string
 }
 variable "security" {
   type = list(string)
@@ -8,3 +8,4 @@ variable "security" {
 # variable "instance_name" {
 #   type = string
 # }
+

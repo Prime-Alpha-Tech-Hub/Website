@@ -1,1 +1,3 @@
 availability_zones = [ "eu-west-2b", "eu-west-2a", "eu-west-2c"]
+user = "admin"
+code = "bibholding$1"

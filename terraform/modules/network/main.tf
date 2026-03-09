@@ -54,7 +54,6 @@ resource "aws_subnet" "private" {
 ######
 
 resource "aws_route_table" "public" {
-
   vpc_id = aws_vpc.main.id
 
   tags = {
@@ -64,22 +63,126 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public" {
-  count = length(var.public_subnets)
-
+  count          = length(var.public_subnets)
   subnet_id      = element(aws_subnet.public[*].id, count.index)
   route_table_id = aws_route_table.public.id
 }
 
 resource "aws_route" "public_internet_gateway" {
-
   route_table_id         = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.igw.id
 }
 
+######
+## ALB Security Group
+######
+
+resource "aws_security_group" "alb" {
+  name        = "${var.vpc_name}-alb-sg"
+  description = "Allow HTTP/HTTPS inbound to ALB"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+  description = "SSH"
+  from_port   = 22
+  to_port     = 22
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]   # restrict to your IP for safety: ["YOUR.IP/32"]
+  }
+
+  ingress {
+   from_port = 80
+   to_port = 80
+   protocol = "tcp"
+   cidr_blocks = ["10.0.0.0/20"]
+  }
+  ingress {
+   from_port = 443
+   to_port = 443
+   protocol = "tcp"
+   cidr_blocks = ["10.0.0.0/20"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name      = "${var.vpc_name}-alb-sg"
+    ManagedBy = "Terraform"
+  }
+}
 
 ######
-## The next steps would be to configure the NAT gateway and
-## private routes but we'll intentionally leave this off to 
-## avoid any unrequired costs
+## Application Load Balancer
 ######
+
+resource "aws_lb" "main" {
+  name               = "${var.vpc_name}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb.id]
+  subnets            = aws_subnet.public[*].id   # ALB lives in public subnets
+
+  enable_deletion_protection = false
+
+  tags = {
+    Name      = "${var.vpc_name}-alb"
+    ManagedBy = "Terraform"
+  }
+}
+
+resource "aws_lb_target_group" "app" {
+  name     = "${var.vpc_name}-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+  
+  health_check {
+    enabled             = true
+    path                = "/"
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    interval            = 30
+    timeout             = 5
+    matcher             = "200-299"
+  }
+
+  tags = {
+    Name      = "${var.vpc_name}-tg"
+    ManagedBy = "Terraform"
+  }
+}
+
+
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = 80
+  protocol          = "HTTP"
+  
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
+     
+  }
+}
