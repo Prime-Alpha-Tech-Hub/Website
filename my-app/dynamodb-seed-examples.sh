@@ -26,7 +26,7 @@
 # ═══════════════════════════════════════════════════════════════════════════
 
 set -e
-REGION="${AWS_REGION:-us-east-1}"
+REGION="${AWS_REGION:-eu-west-2}"
 echo ""
 echo "  Prime Alpha Securities — DynamoDB Seed"
 echo "  Region: $REGION"

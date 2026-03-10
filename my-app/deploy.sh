@@ -97,19 +97,19 @@ ok "package.json set to CommonJS for server"
 step "Setting up TLS"
 mkdir -p "$APP_DIR/certs"
 
-if [[ -f "$APP_DIR/certs/key.pem" && -f "$APP_DIR/certs/cert.pem" ]]; then
+if [[ -f "$APP_DIR/certs/webkey.pem" && -f "$APP_DIR/certs/cert.pem" ]]; then
   ok "Using existing certs in ./certs/"
 else
-  echo "  No certs/key.pem found."
+  echo "  No certs/webkey.pem found."
   echo "  Generating self-signed cert (browser will show 'Not secure' — fine for now)"
   PUBLIC_IP=$(curl -s --max-time 5 http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || hostname -I | awk '{print $1}')
   openssl req -x509 -newkey rsa:2048 \
-    -keyout "$APP_DIR/certs/key.pem" \
+    -keyout "$APP_DIR/certs/webkey.pem" \
     -out    "$APP_DIR/certs/cert.pem" \
     -days 825 -nodes \
     -subj "/C=US/O=PrimeAlphaSecurities/CN=$PUBLIC_IP" \
     -addext "subjectAltName=IP:$PUBLIC_IP,DNS:localhost" 2>/dev/null
-  chmod 600 "$APP_DIR/certs/key.pem"
+  chmod 600 "$APP_DIR/certs/webkey.pem"
   ok "Self-signed cert generated for $PUBLIC_IP"
 fi
 
@@ -143,9 +143,9 @@ StandardError=append:${APP_DIR}/server.log
 Environment=NODE_ENV=production
 Environment=PORT_HTTP=80
 Environment=PORT_HTTPS=443
-Environment=AWS_REGION=us-east-1
-Environment=SES_FROM_EMAIL=noreply@primealphasecurities.com
-Environment=NOTIFY_EMAIL=ops@primealphasecurities.com
+Environment=AWS_REGION=eu-west-2
+Environment=SES_FROM_EMAIL=compliance@primealphasecurities.com
+Environment=NOTIFY_EMAIL=compliance@primealphasecurities.com
 
 [Install]
 WantedBy=multi-user.target
