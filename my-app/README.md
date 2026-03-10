@@ -1,70 +1,131 @@
-# Getting Started with Create React App
+# Prime Alpha Securities — EC2 Deployment
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Prerequisites
+- EC2 instance (Amazon Linux 2023, Ubuntu 22/24, or any systemd distro)
+- Your `key.pem` file
+- IAM role attached to the EC2 instance with DynamoDB access
+- Security group with ports 22, 80, 443 open inbound
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Deploy in 3 commands
 
-### `npm start`
+**From your local machine:**
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```bash
+# 1. Upload the app to EC2
+scp -i your-key.pem -r pas-deploy/ ec2-user@<EC2_IP>:~/pas
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+# 2. SSH in
+ssh -i your-key.pem ec2-user@<EC2_IP>
 
-### `npm test`
+# 3. Deploy (run once inside EC2)
+cd ~/pas && sudo bash deploy.sh
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+That's it. The deploy script handles everything:
+- Installs Node.js 20 if not present
+- Runs `npm install` and `npm run build` (Vite)
+- Generates a self-signed TLS cert (or uses yours if you place it in `certs/`)
+- Registers a systemd service that auto-starts on reboot
+- Starts the app on port 80 (HTTP) + 443 (HTTPS)
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Using your own TLS certificate
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Place your files here **before** running `deploy.sh`:
+```
+pas-deploy/
+  certs/
+    key.pem   ← your private key
+    cert.pem  ← your certificate (fullchain if Let's Encrypt)
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+The deploy script will use them automatically and skip generating a self-signed cert.
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## IAM role credentials
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+The app uses **no hardcoded AWS keys**. The AWS SDK v3 automatically reads
+credentials from the EC2 instance metadata service (IMDS). As long as your EC2
+instance has an IAM role with DynamoDB permissions, it just works.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+**Minimum IAM policy for the role:**
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:Scan",
+      "dynamodb:Query"
+    ],
+    "Resource": "arn:aws:dynamodb:us-east-1:*:table/*"
+  }]
+}
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Or attach the managed policy: `AmazonDynamoDBFullAccess`
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Useful commands after deployment
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+# View live logs
+sudo journalctl -u pas -f
 
-### Code Splitting
+# Check status
+sudo systemctl status pas
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+# Restart
+sudo systemctl restart pas
 
-### Analyzing the Bundle Size
+# Stop
+sudo systemctl stop pas
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+# Re-deploy after code changes
+cd ~/pas && sudo bash deploy.sh
+```
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Getting a real TLS cert with Let's Encrypt
 
-### Advanced Configuration
+```bash
+# On the EC2 instance (after deploy.sh ran once)
+sudo systemctl stop pas
+sudo apt-get install -y certbot   # Ubuntu
+# or: sudo dnf install -y certbot  (Amazon Linux 2023)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+sudo certbot certonly --standalone -d yourdomain.com
 
-### Deployment
+# Copy certs
+sudo cp /etc/letsencrypt/live/yourdomain.com/privkey.pem  ~/pas/certs/key.pem
+sudo cp /etc/letsencrypt/live/yourdomain.com/fullchain.pem ~/pas/certs/cert.pem
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+sudo systemctl start pas
+```
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## DynamoDB tables (provisioned by Terraform)
+
+| Table | Primary Key |
+|---|---|
+| `investor` | `investorId` |
+| `portfolios` | `portfolioId` |
+| `documents` | `docId` |
+| `workers` | `workerId` |
+| `calendar` | `eventId` |
+| `pe_companies` | `dealId` |
+| `credit_application` | `appId` |
+| `real_estate` | `assetId` |
+| `articles` | `articleId` |
+| `enquiries` | `enquiryId` |

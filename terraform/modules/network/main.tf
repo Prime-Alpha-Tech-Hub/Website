@@ -77,11 +77,18 @@ resource "aws_route" "public_internet_gateway" {
 ######
 ## ALB Security Group
 ######
-
 resource "aws_security_group" "alb" {
   name        = "${var.vpc_name}-alb-sg"
   description = "Allow HTTP/HTTPS inbound to ALB"
   vpc_id      = aws_vpc.main.id
+ 
+  ingress {
+    description = "HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   ingress {
     description = "HTTP"
@@ -92,43 +99,32 @@ resource "aws_security_group" "alb" {
   }
 
   ingress {
-    description = "HTTPS"
-    from_port   = 443
-    to_port     = 443
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-  description = "SSH"
-  from_port   = 22
-  to_port     = 22
-  protocol    = "tcp"
-  cidr_blocks = ["0.0.0.0/0"]   # restrict to your IP for safety: ["YOUR.IP/32"]
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/20"]
   }
 
   ingress {
-   from_port = 80
-   to_port = 80
-   protocol = "tcp"
-   cidr_blocks = ["10.0.0.0/20"]
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/20"]
   }
-  ingress {
-   from_port = 443
-   to_port = 443
-   protocol = "tcp"
-   cidr_blocks = ["10.0.0.0/20"]
-  }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name      = "${var.vpc_name}-alb-sg"
-    ManagedBy = "Terraform"
   }
 }
 
@@ -152,9 +148,10 @@ resource "aws_lb" "main" {
 }
 
 resource "aws_lb_target_group" "app" {
+
   name     = "${var.vpc_name}-tg"
-  port     = 80
-  protocol = "HTTP"
+  port     = 443
+  protocol = "HTTPS"
   vpc_id   = aws_vpc.main.id
   
   health_check {
@@ -173,16 +170,28 @@ resource "aws_lb_target_group" "app" {
   }
 }
 
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = 443
+  protocol          = "HTTPS"
 
+  depends_on = [aws_lb_target_group.app]
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
+  }
+}
 
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
   port              = 80
   protocol          = "HTTP"
-  
+
+  depends_on = [aws_lb_target_group.app]
+
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.app.arn
-     
   }
 }

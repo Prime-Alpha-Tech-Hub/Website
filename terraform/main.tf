@@ -13,7 +13,7 @@ module "networking" {
 # Define the EC2 module
 module "ec2" {
   source   = "./modules/app"
-  subnet    = module.networking.public_subnets[0]  # Should use private subnets for EC2 instances
+  subnet    = module.networking.public_subnets[0] 
   security = [module.networking.alb_security_group_id]  # Pass security group ID as a list
 }
 
