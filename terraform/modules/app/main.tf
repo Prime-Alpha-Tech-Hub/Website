@@ -22,6 +22,8 @@ resource "aws_instance" "web" {
   vpc_security_group_ids      = var.security
   associate_public_ip_address = true   # ← add this
   key_name = "webkey"
+  
+
   tags = {
     Name = "app-instance"
   }

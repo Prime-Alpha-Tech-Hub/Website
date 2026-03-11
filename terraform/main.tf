@@ -9,8 +9,7 @@ module "networking" {
   private_subnets    = ["10.0.8.0/24", "10.0.9.0/24", "10.0.10.0/24"]
   target = module.ec2.instance_id[0]
   acm_certificate_arn = var.acm_certificate_arn
-}
-
+  }
 # Define the EC2 module
 module "ec2" {
   source   = "./modules/app"

@@ -77,6 +77,15 @@ resource "aws_route" "public_internet_gateway" {
 ######
 ## ALB Security Group
 ######
+
+data "http" "my_ip" {
+  url = "https://checkip.amazonaws.com/"
+}
+
+locals {
+  my_ip_cidr = "${chomp(data.http.my_ip.response_body)}/32"
+}
+
 resource "aws_security_group" "alb" {
   name        = "${var.vpc_name}-alb-sg"
   description = "Allow HTTP/HTTPS inbound to ALB"
@@ -99,11 +108,10 @@ resource "aws_security_group" "alb" {
   }
 
   ingress {
-    description = "SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [local.my_ip_cidr]
   }
 
   ingress {
@@ -148,12 +156,11 @@ resource "aws_lb" "main" {
 }
 
 resource "aws_lb_target_group" "app" {
-
   name     = "${var.vpc_name}-tg"
-  port     = 443
-  protocol = "HTTPS"
+  port     = 80
+  protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
-  
+
   health_check {
     enabled             = true
     path                = "/"
@@ -163,12 +170,12 @@ resource "aws_lb_target_group" "app" {
     timeout             = 5
     matcher             = "200-299"
   }
-
   tags = {
     Name      = "${var.vpc_name}-tg"
     ManagedBy = "Terraform"
   }
 }
+
 
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.main.arn
@@ -189,13 +196,8 @@ resource "aws_lb_listener" "http" {
 
   depends_on = [aws_lb_target_group.app]
 
-  default_action {
-    type = "redirect"
-
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
+   default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
   }
 }
