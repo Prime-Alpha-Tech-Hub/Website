@@ -35,6 +35,38 @@ const HOSTNAME    = typeof window !== "undefined" ? window.location.hostname : "
 const IS_INVESTOR = HOSTNAME.startsWith("investor.");
 const IS_WORKER   = HOSTNAME.startsWith("worker.");
 const IS_PUBLIC   = !IS_INVESTOR && !IS_WORKER;
+
+// ── URL path → page name map ──────────────────────────────────────────────────
+const ROUTES = {
+  "/":                 "home",
+  "/who-we-are":       "Overview",
+  "/culture":          "Culture",
+  "/leadership":       "Leadership",
+  "/civic-priorities": "Civic Priorities",
+  "/what-we-do":       "What We Do",
+  "/private-equity":   "Private Equity",
+  "/private-credit":   "Private Credit",
+  "/real-estate":      "Real Estate",
+  "/fixed-income-fx":  "Fixed Income & FX",
+  "/careers":          "Careers",
+  "/research":         "Research",
+  "/contact":          "Contact",
+  "/privacy":          "Privacy",
+  "/terms":            "Terms",
+  "/notices":          "Notices",
+  "/disclosures":      "Disclosures",
+};
+const PAGE_TO_PATH = Object.fromEntries(Object.entries(ROUTES).map(([k,v])=>[v,k]));
+PAGE_TO_PATH["home"] = "/";
+
+function navigate(page){
+  const path = PAGE_TO_PATH[page] || "/";
+  window.history.pushState({page}, "", path);
+  window.scrollTo(0, 0);
+}
+function getPageFromPath(){
+  return ROUTES[window.location.pathname] || "home";
+}
 const DOMAIN      = "primealphasecurities.com";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -274,6 +306,31 @@ input,textarea,select{font-family:inherit}
 .fi{animation:fadeIn 0.3s ease both}
 .sr{animation:slideRight 0.35s ease both}
 .fu-1{animation-delay:0.08s}.fu-2{animation-delay:0.16s}.fu-3{animation-delay:0.24s}.fu-4{animation-delay:0.32s}
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+.desk-nav{display:flex!important}
+.mob-btn{display:none!important}
+
+@media(max-width:900px){
+  .desk-nav{display:none!important}
+  .mob-btn{display:flex!important}
+  .rg-2{grid-template-columns:1fr!important}
+  .rg-4{grid-template-columns:1fr 1fr!important}
+  .rg-ft{grid-template-columns:1fr 1fr!important}
+  .hero-grid{grid-template-columns:1fr!important}
+  .px-page{padding-left:24px!important;padding-right:24px!important}
+  .px-hero{padding-left:24px!important;padding-right:24px!important;padding-top:80px!important}
+}
+@media(max-width:600px){
+  .rg-4{grid-template-columns:1fr!important}
+  .rg-ft{grid-template-columns:1fr!important}
+  .rg-2{grid-template-columns:1fr!important}
+  .px-page{padding-left:16px!important;padding-right:16px!important}
+  .form-2col{grid-template-columns:1fr!important}
+  .form-2col>div{padding-left:0!important}
+  .stat-grid{grid-template-columns:1fr 1fr!important}
+  .hide-sm{display:none!important}
+}
 `;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -444,11 +501,56 @@ function LogoInline({size=16,dark=false}){
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  SHARED LAYOUT COMPONENTS
+//  These are used across multiple public pages and portal views.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Dark hero banner used at the top of every public inner page.
+// Usage: <PageHero eyebrow="Who We Are" title="LEADERSHIP" body="..."/>
+function PageHero({eyebrow, title, body}){
+  return(
+    <div style={{paddingTop:66}}>
+      <div style={{background:"var(--head)",padding:"80px 40px"}}>
+        <div style={{maxWidth:960,margin:"0 auto"}}>
+          {eyebrow&&<div style={{fontSize:10,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",color:"var(--blue)",marginBottom:12}}>{eyebrow}</div>}
+          <h1 style={{fontFamily:"var(--ff-h)",fontSize:"clamp(38px,6vw,70px)",fontWeight:800,color:"#fff",letterSpacing:"-0.5px"}}>{title}</h1>
+          {body&&<p style={{fontSize:16,color:"rgba(255,255,255,0.6)",maxWidth:620,lineHeight:1.85,marginTop:20}}>{body}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Tiny uppercase blue eyebrow label used above section headings.
+// Usage: <SectionLabel>Capital Solutions</SectionLabel>
+function SectionLabel({children}){
+  return(
+    <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",color:"var(--blue)",marginBottom:10}}>
+      {children}
+    </div>
+  );
+}
+
+// Success confirmation shown after a form is submitted.
+// Usage: <SubmitSuccess email="x@y.com" message="We'll respond in 2 business days."/>
+function SubmitSuccess({email, message}){
+  return(
+    <div style={{textAlign:"center",padding:"48px 0"}}>
+      <div style={{width:60,height:60,background:"var(--blue)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:26,color:"#fff"}}>✓</div>
+      <h3 style={{fontFamily:"var(--ff-h)",fontWeight:700,color:"var(--head)",fontSize:26,marginBottom:8}}>Submitted</h3>
+      {email&&<p style={{color:"var(--dim)"}}>We'll reach out to <strong>{email}</strong>.</p>}
+      {message&&<p style={{color:"var(--dim)",marginTop:4}}>{message}</p>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  PUBLIC NAV
 // ─────────────────────────────────────────────────────────────────────────────
-function PublicNav({page,setPage}){
+function PublicNav(){
   const [scrolled,ss]=useState(false);
   const [open,so]=useState(null);
+  const [menuOpen,sm]=useState(false);
   useEffect(()=>{
     const fn=()=>ss(window.scrollY>30);
     window.addEventListener("scroll",fn);return()=>window.removeEventListener("scroll",fn);
@@ -461,19 +563,25 @@ function PublicNav({page,setPage}){
     {label:"Contact",items:[]},
   ];
   return(
-    <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:500,background:scrolled?"rgba(255,255,255,0.97)":"var(--w)",borderBottom:"var(--bdr)",backdropFilter:"blur(10px)",boxShadow:scrolled?"var(--sh)":"none",transition:"box-shadow 0.2s"}}>
-      <div style={{maxWidth:1300,margin:"0 auto",padding:"0 40px",height:66,display:"flex",alignItems:"center"}}>
-        <button onClick={()=>setPage("home")} style={{marginRight:52,flexShrink:0,lineHeight:1}}><LogoInline size={17}/></button>
-        <div style={{display:"flex",flex:1,alignItems:"stretch",height:"100%"}} onMouseLeave={()=>so(null)}>
+    <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:500,background:scrolled?"rgba(255,255,255,0.97)":"var(--w)",borderBottom:"var(--bdr)",backdropFilter:"blur(10px)",boxShadow:scrolled?"var(--sh)":"none",transition:"box-shadow 0.2s",overflow:"visible"}}>
+      <div style={{maxWidth:1300,margin:"0 auto",padding:"0 40px",height:66,display:"flex",alignItems:"center",gap:0}}>
+        <button onClick={()=>navigate("home")} style={{flexShrink:0,lineHeight:1}}><LogoInline size={17}/></button>
+
+        {/* Desktop nav links */}
+        <div className="desk-nav" style={{display:"flex",flex:1,alignItems:"stretch",height:"100%",marginLeft:32}} onMouseLeave={()=>so(null)}>
           {groups.map(g=>(
             <div key={g.label} style={{position:"relative",height:"100%",display:"flex",alignItems:"center"}} onMouseEnter={()=>so(g.label)}>
-              <button onClick={()=>g.items.length===0&&setPage(g.label)} style={{padding:"0 15px",height:"100%",fontSize:13,fontWeight:500,color:open===g.label?"var(--blue)":"var(--body)",background:"none",borderBottom:open===g.label?"2px solid var(--blue)":"2px solid transparent",transition:"all 0.15s"}}>
+              <button onClick={()=>g.items.length===0&&navigate(g.label)}
+                style={{padding:"0 12px",height:"100%",fontSize:13,fontWeight:500,whiteSpace:"nowrap",
+                  color:open===g.label?"var(--blue)":"var(--body)",background:"none",
+                  borderBottom:open===g.label?"2px solid var(--blue)":"2px solid transparent",transition:"all 0.15s"}}>
                 {g.label}
               </button>
               {g.items.length>0&&open===g.label&&(
                 <div className="fu" style={{position:"absolute",top:"100%",left:0,background:"var(--w)",border:"var(--bdr)",borderRadius:"var(--rl)",minWidth:210,zIndex:200,boxShadow:"var(--sh-lg)",overflow:"hidden"}}>
                   {g.items.map(item=>(
-                    <button key={item} onClick={()=>{setPage(item);so(null);}} style={{display:"block",width:"100%",textAlign:"left",padding:"11px 18px",fontSize:13,color:"var(--body)",background:"none",borderBottom:"1px solid var(--lg)",transition:"background 0.1s"}}
+                    <button key={item} onClick={()=>{navigate(item);so(null);}}
+                      style={{display:"block",width:"100%",textAlign:"left",padding:"11px 18px",fontSize:13,color:"var(--body)",background:"none",borderBottom:"1px solid var(--lg)",transition:"background 0.1s"}}
                       onMouseEnter={e=>e.currentTarget.style.background="var(--blue-l)"}
                       onMouseLeave={e=>e.currentTarget.style.background="none"}>
                       {item}
@@ -484,11 +592,51 @@ function PublicNav({page,setPage}){
             </div>
           ))}
         </div>
-        <div style={{display:"flex",gap:10}}>
-          <button style={T.btnO} onClick={()=>window.location.href=`https://investor.${DOMAIN}`}>Investor Portal</button>
-          <button style={T.btnP} onClick={()=>window.location.href=`https://worker.${DOMAIN}`}>Team Access</button>
+        <div className="desk-nav" style={{display:"flex",gap:8,marginLeft:16,flexShrink:0}}>
+          <button style={{...T.btnO,padding:"9px 16px",fontSize:11}} onClick={()=>window.location.href=`https://investor.${DOMAIN}`}>Investor Portal</button>
+          <button style={{...T.btnP,padding:"9px 16px",fontSize:11}} onClick={()=>window.location.href=`https://worker.${DOMAIN}`}>Team Access</button>
         </div>
+
+        {/* Hamburger (mobile) */}
+        <button className="mob-btn"
+          onClick={()=>sm(v=>!v)}
+          aria-label="Menu"
+          style={{display:"none",flexDirection:"column",justifyContent:"center",gap:5,padding:"8px",background:"none",border:"none",cursor:"pointer",marginLeft:12,flexShrink:0}}>
+          <span style={{display:"block",width:22,height:2,background:"var(--head)",borderRadius:1,transition:"all 0.2s",transform:menuOpen?"rotate(45deg) translate(5px,5px)":"none"}}/>
+          <span style={{display:"block",width:22,height:2,background:"var(--head)",borderRadius:1,transition:"opacity 0.2s",opacity:menuOpen?0:1}}/>
+          <span style={{display:"block",width:22,height:2,background:"var(--head)",borderRadius:1,transition:"all 0.2s",transform:menuOpen?"rotate(-45deg) translate(5px,-5px)":"none"}}/>
+        </button>
       </div>
+
+      {/* Mobile drawer */}
+      {menuOpen&&(
+        <div style={{position:"absolute",top:"100%",left:0,right:0,background:"var(--w)",borderBottom:"var(--bdr)",boxShadow:"var(--sh-lg)",zIndex:498,maxHeight:"80vh",overflowY:"auto"}}>
+          {groups.map(g=>(
+            <div key={g.label}>
+              {g.items.length===0?(
+                <button onClick={()=>{navigate(g.label);sm(false);}}
+                  style={{display:"block",width:"100%",textAlign:"left",padding:"14px 24px",fontSize:15,fontWeight:500,color:"var(--body)",background:"none",borderBottom:"1px solid var(--lg)"}}>
+                  {g.label}
+                </button>
+              ):(
+                <>
+                  <div style={{padding:"14px 24px 4px",fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"var(--blue)",borderBottom:"1px solid var(--lg)"}}>{g.label}</div>
+                  {g.items.map(item=>(
+                    <button key={item} onClick={()=>{navigate(item);sm(false);}}
+                      style={{display:"block",width:"100%",textAlign:"left",padding:"12px 24px 12px 36px",fontSize:14,color:"var(--body)",background:"none",borderBottom:"1px solid var(--lg)"}}>
+                      {item}
+                    </button>
+                  ))}
+                </>
+              )}
+            </div>
+          ))}
+          <div style={{padding:"16px 24px",display:"flex",flexDirection:"column",gap:10}}>
+            <button style={{...T.btnO,width:"100%"}} onClick={()=>window.location.href=`https://investor.${DOMAIN}`}>Investor Portal</button>
+            <button style={{...T.btnP,width:"100%"}} onClick={()=>window.location.href=`https://worker.${DOMAIN}`}>Team Access</button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
@@ -496,11 +644,11 @@ function PublicNav({page,setPage}){
 // ─────────────────────────────────────────────────────────────────────────────
 //  PUBLIC FOOTER
 // ─────────────────────────────────────────────────────────────────────────────
-function PublicFooter({setPage}){
+function PublicFooter(){
   return(
     <footer style={{background:"var(--head)",color:"rgba(255,255,255,0.65)"}}>
-      <div style={{maxWidth:1300,margin:"0 auto",padding:"60px 40px 32px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:48,marginBottom:48}}>
+      <div className="px-page" style={{maxWidth:1300,margin:"0 auto",padding:"60px 40px 32px"}}>
+        <div className="rg-ft" style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:48,marginBottom:48}}>
           <div>
             <div style={{marginBottom:16}}><Logo size={18} dark/></div>
             <p style={{fontSize:13,lineHeight:1.85,maxWidth:270}}>Flexible capital solutions across private equity, credit, real estate, and fixed income — delivered with precision and integrity.</p>
@@ -512,7 +660,7 @@ function PublicFooter({setPage}){
             <div key={h}>
               <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",color:"var(--blue)",marginBottom:16}}>{h}</div>
               {items.map(i=>(
-                <button key={i} onClick={()=>setPage(i)} style={{display:"block",color:"rgba(255,255,255,0.5)",fontSize:13,marginBottom:9,background:"none",transition:"color 0.15s"}}
+                <button key={i} onClick={()=>navigate(i)} style={{display:"block",color:"rgba(255,255,255,0.5)",fontSize:13,marginBottom:9,background:"none",transition:"color 0.15s"}}
                   onMouseEnter={e=>e.currentTarget.style.color="#fff"}
                   onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.5)"}>{i}</button>
               ))}
@@ -531,16 +679,16 @@ function PublicFooter({setPage}){
 // ─────────────────────────────────────────────────────────────────────────────
 //  PUBLIC HOME
 // ─────────────────────────────────────────────────────────────────────────────
-function PublicHome({setPage}){
+function PublicHome(){
   return(
     <div>
       {/* Hero */}
-      <section style={{minHeight:"100vh",display:"flex",alignItems:"center",background:"var(--w)",padding:"100px 40px 80px",position:"relative",overflow:"hidden"}}>
+      <section className="px-hero" style={{minHeight:"100vh",display:"flex",alignItems:"center",background:"var(--w)",padding:"100px 40px 80px",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(var(--lg) 1px,transparent 1px),linear-gradient(90deg,var(--lg) 1px,transparent 1px)",backgroundSize:"72px 72px",opacity:0.55,pointerEvents:"none"}}/>
         <div style={{position:"absolute",right:0,top:0,bottom:0,width:"44%",background:"var(--blue)",clipPath:"polygon(7% 0%,100% 0%,100% 100%,0% 100%)"}}/>
-        <div style={{maxWidth:1300,margin:"0 auto",width:"100%",display:"grid",gridTemplateColumns:"1fr 1fr",position:"relative",zIndex:1}}>
+        <div className="hero-grid" style={{maxWidth:1300,margin:"0 auto",width:"100%",display:"grid",gridTemplateColumns:"1fr 1fr",position:"relative",zIndex:1}}>
           <div className="fu">
-            <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:"var(--blue)",marginBottom:20}}>Flexible Capital Solutions</div>
+            <SectionLabel>Flexible Capital Solutions</SectionLabel>
             <h1 style={{fontFamily:"var(--ff-h)",fontSize:"clamp(50px,7vw,88px)",fontWeight:800,lineHeight:0.92,color:"var(--head)",marginBottom:28,letterSpacing:"-1px"}}>
               PRIME<br/>
               <span style={{color:"var(--blue)"}}>ALPHA</span><br/>
@@ -550,8 +698,8 @@ function PublicHome({setPage}){
               We deploy flexible capital across private equity, private credit, real estate, and fixed income — structuring bespoke solutions where conventional finance falls short.
             </p>
             <div style={{display:"flex",gap:14}}>
-              <button style={T.btnP} onClick={()=>setPage("What We Do")}>Our Solutions</button>
-              <button style={T.btnO} onClick={()=>setPage("Contact")}>Get In Touch</button>
+              <button style={T.btnP} onClick={()=>navigate("What We Do")}>Our Solutions</button>
+              <button style={T.btnO} onClick={()=>navigate("Contact")}>Get In Touch</button>
             </div>
             <div style={{display:"flex",gap:40,marginTop:48,paddingTop:40,borderTop:"var(--bdr)"}}>
               {[["$4.2B+","AUM"],["18%","Avg Net IRR"],["140+","Clients"],["23 yrs","Track Record"]].map(([v,l])=>(
@@ -574,16 +722,16 @@ function PublicHome({setPage}){
       </section>
 
       {/* Solutions */}
-      <section style={{padding:"88px 40px",background:"var(--ow)"}}>
+      <section style={{padding:"88px max(16px, 4vw)",background:"var(--ow)"}}>
         <div style={{maxWidth:1300,margin:"0 auto"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:48}}>
             <div>
-              <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",color:"var(--blue)",marginBottom:10}}>Capital Solutions</div>
+              <SectionLabel>Capital Solutions</SectionLabel>
               <h2 style={{...T.hdg,fontSize:44,letterSpacing:"-0.5px"}}>WHAT WE DO</h2>
             </div>
-            <button style={T.btnG} onClick={()=>setPage("What We Do")}>View all →</button>
+            <button style={T.btnG} onClick={()=>navigate("What We Do")}>View all →</button>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:20}}>
+          <div className="rg-4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:20}}>
             {[{name:"Private Equity",icon:"◆",desc:"Control and minority investments in market-leading businesses with durable competitive advantages.",p:"Private Equity"},
               {name:"Private Credit",icon:"◈",desc:"Direct lending, unitranche, and structured credit solutions from $2M to $100M+.",p:"Private Credit"},
               {name:"Real Estate",icon:"◇",desc:"Value-add and core-plus strategies in logistics, multifamily, and commercial assets.",p:"Real Estate"},
@@ -592,7 +740,7 @@ function PublicHome({setPage}){
               <div key={s.name} className={`fu fu-${i+1}`} style={{...T.card,cursor:"pointer",borderTop:"3px solid transparent",transition:"all 0.2s"}}
                 onMouseEnter={e=>{e.currentTarget.style.borderTopColor="var(--blue)";e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="var(--sh-md)";}}
                 onMouseLeave={e=>{e.currentTarget.style.borderTopColor="transparent";e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="var(--sh)";}}
-                onClick={()=>setPage(s.p)}>
+                onClick={()=>navigate(s.p)}>
                 <div style={{fontSize:22,color:"var(--blue)",marginBottom:16}}>{s.icon}</div>
                 <h3 style={{...T.hdg,fontSize:18,marginBottom:10}}>{s.name}</h3>
                 <p style={{fontSize:13,color:"var(--dim)",lineHeight:1.75}}>{s.desc}</p>
@@ -604,16 +752,16 @@ function PublicHome({setPage}){
       </section>
 
       {/* Research teaser */}
-      <section style={{padding:"88px 40px",background:"var(--w)"}}>
+      <section style={{padding:"88px max(16px, 4vw)",background:"var(--w)"}}>
         <div style={{maxWidth:1300,margin:"0 auto"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:40}}>
             <div>
-              <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",color:"var(--blue)",marginBottom:10}}>Latest Thinking</div>
+              <SectionLabel>Latest Thinking</SectionLabel>
               <h2 style={{...T.hdg,fontSize:40,letterSpacing:"-0.5px"}}>RESEARCH & INSIGHTS</h2>
             </div>
-            <button style={T.btnG} onClick={()=>setPage("Research")}>All articles →</button>
+            <button style={T.btnG} onClick={()=>navigate("Research")}>All articles →</button>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+          <div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
             {SEED["articles"].slice(0,2).map((a,i)=>(
               <div key={a.articleId} className={`fu fu-${i+1}`} style={{...T.card,display:"flex",flexDirection:"column",gap:12,cursor:"pointer",transition:"box-shadow 0.15s,border-color 0.15s"}}
                 onMouseEnter={e=>{e.currentTarget.style.boxShadow="var(--sh-md)";e.currentTarget.style.borderColor="var(--blue)";}}
@@ -646,16 +794,10 @@ function WhoWeAre({sub}){
   };
   const c=C[sub]||C.Overview;
   return(
-    <div style={{paddingTop:66}}>
-      <div style={{background:"var(--head)",padding:"80px 40px"}}>
-        <div style={{maxWidth:960,margin:"0 auto"}}>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",color:"var(--blue)",marginBottom:12}}>Who We Are</div>
-          <h1 style={{fontFamily:"var(--ff-h)",fontSize:"clamp(38px,6vw,70px)",fontWeight:800,color:"#fff",letterSpacing:"-0.5px"}}>{c.h.toUpperCase()}</h1>
-          {c.body&&<p style={{fontSize:16,color:"rgba(255,255,255,0.6)",maxWidth:620,lineHeight:1.85,marginTop:20}}>{c.body}</p>}
-        </div>
-      </div>
-      <div style={{maxWidth:960,margin:"0 auto",padding:"64px 40px"}}>
-        {c.stats&&<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:20}}>
+    <div>
+      <PageHero eyebrow="Who We Are" title={c.h.toUpperCase()} body={c.body}/>
+      <div style={{maxWidth:960,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
+        {c.stats&&<div className="rg-4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:20}}>
           {c.stats.map(([v,l,s])=>(
             <div key={l} style={{...T.card,borderTop:"3px solid var(--blue)"}}>
               <div style={{fontFamily:"var(--ff-h)",fontSize:38,fontWeight:800,color:"var(--blue)"}}>{v}</div>
@@ -670,7 +812,7 @@ function WhoWeAre({sub}){
             <p style={{color:"var(--dim)",lineHeight:1.85}}>{d}</p>
           </div>
         ))}
-        {c.people&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+        {c.people&&<div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
           {c.people.map(p=>(
             <div key={p.n} style={T.card}>
               <div style={{width:50,height:50,background:"var(--blue)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontFamily:"var(--ff-h)",fontSize:18,fontWeight:800,marginBottom:14}}>
@@ -699,26 +841,15 @@ function WhoWeAre({sub}){
 // ─────────────────────────────────────────────────────────────────────────────
 //  WHAT WE DO
 // ─────────────────────────────────────────────────────────────────────────────
-function WhatWeDo({sub,setPage}){
+function WhatWeDo({sub}){
   if(sub==="Private Credit")return <PrivateCreditPublic/>;
-  const PageHero=({title,body})=>(
-    <div style={{paddingTop:66}}>
-      <div style={{background:"var(--head)",padding:"80px 40px"}}>
-        <div style={{maxWidth:960,margin:"0 auto"}}>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",color:"var(--blue)",marginBottom:12}}>Capital Solutions</div>
-          <h1 style={{fontFamily:"var(--ff-h)",fontSize:"clamp(38px,6vw,70px)",fontWeight:800,color:"#fff",letterSpacing:"-0.5px"}}>{title.toUpperCase()}</h1>
-          {body&&<p style={{fontSize:16,color:"rgba(255,255,255,0.6)",maxWidth:600,lineHeight:1.85,marginTop:20}}>{body}</p>}
-        </div>
-      </div>
-    </div>
-  );
   if(sub==="Overview")return(
     <div>
-      <PageHero title="What We Do" body="Prime Alpha Securities operates four integrated capital platforms, each with dedicated teams, proprietary deal flow, and flexible mandate structures built to serve clients that conventional managers cannot."/>
-      <div style={{maxWidth:960,margin:"0 auto",padding:"64px 40px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
+      <PageHero eyebrow="Capital Solutions" title="WHAT WE DO" body="Prime Alpha Securities operates four integrated capital platforms, each with dedicated teams, proprietary deal flow, and flexible mandate structures built to serve clients that conventional managers cannot."/>
+      <div style={{maxWidth:960,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
+        <div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
           {["Private Equity","Private Credit","Real Estate","Fixed Income & FX"].map(s=>(
-            <button key={s} onClick={()=>setPage(s)} style={{...T.card,textAlign:"left",cursor:"pointer",borderLeft:"3px solid var(--blue)",transition:"box-shadow 0.15s"}}
+            <button key={s} onClick={()=>navigate(s)} style={{...T.card,textAlign:"left",cursor:"pointer",borderLeft:"3px solid var(--blue)",transition:"box-shadow 0.15s"}}
               onMouseEnter={e=>e.currentTarget.style.boxShadow="var(--sh-md)"}
               onMouseLeave={e=>e.currentTarget.style.boxShadow="var(--sh)"}>
               <h3 style={{...T.hdg,fontSize:20,marginBottom:6}}>{s}</h3>
@@ -737,8 +868,8 @@ function WhatWeDo({sub,setPage}){
   const s=strats[sub];
   return(
     <div>
-      <PageHero title={sub} body={s?.body}/>
-      <div style={{maxWidth:960,margin:"0 auto",padding:"64px 40px"}}>
+      <PageHero eyebrow="Capital Solutions" title={sub.toUpperCase()} body={s?.body}/>
+      <div style={{maxWidth:960,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
         {s?.items.map(item=>(
           <div key={item} style={{display:"flex",gap:16,padding:"14px 0",borderBottom:"1px solid var(--lg)"}}>
             <div style={{width:8,height:8,background:"var(--blue)",borderRadius:"50%",flexShrink:0,marginTop:8}}/>
@@ -768,16 +899,10 @@ function PrivateCreditPublic(){
     sv(false);ss(true);
   };
   return(
-    <div style={{paddingTop:66}}>
-      <div style={{background:"var(--head)",padding:"80px 40px"}}>
-        <div style={{maxWidth:960,margin:"0 auto"}}>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",color:"var(--blue)",marginBottom:12}}>Direct Lending</div>
-          <h1 style={{fontFamily:"var(--ff-h)",fontSize:"clamp(38px,6vw,70px)",fontWeight:800,color:"#fff"}}>PRIVATE CREDIT</h1>
-          <p style={{fontSize:16,color:"rgba(255,255,255,0.6)",maxWidth:580,lineHeight:1.85,marginTop:20}}>Bespoke credit solutions for businesses and individuals where speed, certainty, and structural flexibility are paramount.</p>
-        </div>
-      </div>
-      <div style={{maxWidth:960,margin:"0 auto",padding:"64px 40px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18,marginBottom:56}}>
+    <div>
+      <PageHero eyebrow="Direct Lending" title="PRIVATE CREDIT" body="Bespoke credit solutions for businesses and individuals where speed, certainty, and structural flexibility are paramount."/>
+      <div style={{maxWidth:960,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
+        <div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18,marginBottom:56}}>
           {[["Direct Lending","Senior secured loans to businesses with EBITDA of $3M–$50M."],["Unitranche","One-stop financing combining senior and subordinated debt in a single tranche."],["Secured Personal Credit","Asset-backed facilities against liquid and illiquid collateral."],["Unsecured Business Credit","Cash-flow-based lending for businesses with strong revenue visibility."]].map(([t,d])=>(
             <div key={t} style={{...T.card,borderLeft:"3px solid var(--blue)"}}>
               <h3 style={{...T.hdg,fontSize:17,marginBottom:8}}>{t}</h3>
@@ -789,14 +914,10 @@ function PrivateCreditPublic(){
           <h2 style={{...T.hdg,fontSize:26,marginBottom:6}}>Loan Enquiry</h2>
           <p style={{color:"var(--dim)",fontSize:13,marginBottom:28}}>Submit your enquiry and our credit team will contact you within 2 business days to schedule a call. Submitted directly to pas-credit-apps.</p>
           {sub?(
-            <div style={{textAlign:"center",padding:"48px 0"}}>
-              <div style={{width:60,height:60,background:"var(--blue)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:26,color:"#fff"}}>✓</div>
-              <h3 style={{...T.hdg,fontSize:26,marginBottom:8}}>Enquiry Submitted</h3>
-              <p style={{color:"var(--dim)"}}>We'll reach out to <strong>{form.email}</strong> within 2 business days.</p>
-            </div>
+            <SubmitSuccess email={form.email} message="Our credit team will contact you within 2 business days."/>
           ):(
             <div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
+              <div className="form-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
                 <Sel label="Applicant Type" value={form.type} onChange={set("type")} options={[{value:"business",label:"Business / Corporate"},{value:"individual",label:"Individual / HNW"}]}/>
                 <div style={{paddingLeft:16}}><Sel label="Loan Type" value={form.loanType} onChange={set("loanType")} options={[{value:"secured",label:"Secured"},{value:"unsecured",label:"Unsecured"}]}/></div>
                 <Inp label="Full Name / Company *" value={form.name} onChange={set("name")}/>
@@ -821,15 +942,9 @@ function PrivateCreditPublic(){
 function Careers(){
   const roles=[{t:"Associate, Private Equity",d:"Investments",l:"New York"},{t:"Credit Analyst, Direct Lending",d:"Private Credit",l:"London"},{t:"Quantitative Researcher",d:"Risk",l:"New York / Remote"},{t:"Real Estate Associate",d:"Real Assets",l:"Singapore"},{t:"Fund Accounting Manager",d:"Finance",l:"New York"}];
   return(
-    <div style={{paddingTop:66}}>
-      <div style={{background:"var(--head)",padding:"80px 40px"}}>
-        <div style={{maxWidth:960,margin:"0 auto"}}>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",color:"var(--blue)",marginBottom:12}}>Join Us</div>
-          <h1 style={{fontFamily:"var(--ff-h)",fontSize:"clamp(38px,6vw,70px)",fontWeight:800,color:"#fff"}}>CAREERS</h1>
-          <p style={{fontSize:16,color:"rgba(255,255,255,0.6)",maxWidth:520,lineHeight:1.85,marginTop:20}}>We hire exceptional thinkers who combine intellectual rigour with the flexibility to structure solutions others cannot.</p>
-        </div>
-      </div>
-      <div style={{maxWidth:960,margin:"0 auto",padding:"64px 40px"}}>
+    <div>
+      <PageHero eyebrow="Join Us" title="CAREERS" body="We hire exceptional thinkers who combine intellectual rigour with the flexibility to structure solutions others cannot."/>
+      <div style={{maxWidth:960,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
         {roles.map(r=>(
           <div key={r.t} style={{...T.card,marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div>
@@ -853,16 +968,11 @@ function Research(){
   const [active,sact]=useState(null);
   useEffect(()=>{api.getAll("articles").then(r=>{sa([...r].sort((a,b)=>b.date.localeCompare(a.date)));sl(false);});},[]);
   return(
-    <div style={{paddingTop:66}}>
-      <div style={{background:"var(--head)",padding:"80px 40px"}}>
-        <div style={{maxWidth:1100,margin:"0 auto"}}>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",color:"var(--blue)",marginBottom:12}}>Perspectives</div>
-          <h1 style={{fontFamily:"var(--ff-h)",fontSize:"clamp(38px,6vw,70px)",fontWeight:800,color:"#fff"}}>RESEARCH & INSIGHTS</h1>
-        </div>
-      </div>
-      <div style={{maxWidth:1100,margin:"0 auto",padding:"64px 40px"}}>
+    <div>
+      <PageHero eyebrow="Perspectives" title="RESEARCH & INSIGHTS"/>
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
         {loading?<Spinner/>:(
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+          <div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
             {articles.map((a,i)=>(
               <div key={a.articleId} className={`fu fu-${Math.min(i+1,4)}`} onClick={()=>sact(a)} style={{...T.card,cursor:"pointer",display:"flex",flexDirection:"column",transition:"all 0.2s"}}
                 onMouseEnter={e=>{e.currentTarget.style.boxShadow="var(--sh-md)";e.currentTarget.style.borderColor="var(--blue)";}}
@@ -909,14 +1019,9 @@ function Contact(){
     sv(false);ss(true);
   };
   return(
-    <div style={{paddingTop:66}}>
-      <div style={{background:"var(--head)",padding:"80px 40px"}}>
-        <div style={{maxWidth:1100,margin:"0 auto"}}>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",color:"var(--blue)",marginBottom:12}}>Get In Touch</div>
-          <h1 style={{fontFamily:"var(--ff-h)",fontSize:"clamp(38px,6vw,70px)",fontWeight:800,color:"#fff"}}>CONTACT</h1>
-        </div>
-      </div>
-      <div style={{maxWidth:1100,margin:"0 auto",padding:"64px 40px",display:"grid",gridTemplateColumns:"1fr 1.6fr",gap:60}}>
+    <div>
+      <PageHero eyebrow="Get In Touch" title="CONTACT"/>
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"64px max(16px,4vw)",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:40}}>
         <div>
           {[["New York HQ","745 Fifth Avenue, 32nd Floor\nNew York, NY 10151"],["London","1 Grosvenor Square\nLondon W1K 6AB, UK"],["Singapore","Marina Bay Financial Centre\nTower 3 #23-01"],["General","info@primealphasecurities.com"],["Investor Relations","ir@primealphasecurities.com"]].map(([k,v])=>(
             <div key={k} style={{marginBottom:24}}>
@@ -927,15 +1032,11 @@ function Contact(){
         </div>
         <div style={T.card}>
           {sent?(
-            <div style={{textAlign:"center",padding:"48px 0"}}>
-              <div style={{width:60,height:60,background:"var(--blue)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:26,color:"#fff"}}>✓</div>
-              <h3 style={{...T.hdg,fontSize:26,marginBottom:8}}>Message Sent</h3>
-              <p style={{color:"var(--dim)"}}>We'll respond within 2 business days.</p>
-            </div>
+            <SubmitSuccess message="We'll respond within 2 business days."/>
           ):(
             <>
               <h2 style={{...T.hdg,fontSize:24,marginBottom:24}}>Send an Enquiry</h2>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
+              <div className="form-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
                 <Inp label="Full Name *" value={form.name} onChange={set("name")}/>
                 <div style={{paddingLeft:16}}><Inp label="Email *" type="email" value={form.email} onChange={set("email")}/></div>
               </div>
@@ -962,11 +1063,9 @@ function Legal({type}){
     Disclosures:"IMPORTANT: Alternative investments involve high risk, are speculative and illiquid, and are not suitable for all investors. These investments are offered only to qualified investors. Performance data shown may not be representative of all client outcomes. Net returns are after management fees and carried interest.",
   };
   return(
-    <div style={{paddingTop:66}}>
-      <div style={{background:"var(--head)",padding:"64px 40px"}}>
-        <div style={{maxWidth:800,margin:"0 auto"}}><h1 style={{fontFamily:"var(--ff-h)",fontSize:48,fontWeight:800,color:"#fff"}}>{type.toUpperCase()}</h1></div>
-      </div>
-      <div style={{maxWidth:800,margin:"0 auto",padding:"64px 40px"}}>
+    <div>
+      <PageHero title={type.toUpperCase()}/>
+      <div style={{maxWidth:800,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
         <div style={T.card}><p style={{color:"var(--body)",lineHeight:1.9}}>{T2[type]}</p></div>
       </div>
     </div>
@@ -1446,7 +1545,7 @@ function WClients({clients,addClient,updateClient,removeClient,showToast}){
         <h1 style={{...T.hdg,fontSize:32}}>{isEdit?"Edit Client":"New Client"}</h1>
       </div>
       <div style={{...T.card,maxWidth:700}}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
+        <div className="form-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
           <Inp label="Name / Organisation *" value={form.name||""} onChange={fset("name")}/>
           <div style={{paddingLeft:16}}><Inp label="Email *" type="email" value={form.email||""} onChange={fset("email")}/></div>
           <Inp label="Phone" value={form.phone||""} onChange={fset("phone")}/>
@@ -1640,7 +1739,7 @@ function WPE({deals,addDeal,updateDeal,removeDeal,workers,showToast}){
         );
       })}
       <Modal open={showAdd} onClose={()=>sa(false)} title="Add New Deal">
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
+        <div className="form-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
           <Inp label="Company Name" value={af.company} onChange={e=>saf(p=>({...p,company:e.target.value}))}/>
           <div style={{paddingLeft:16}}><Inp label="Sector" value={af.sector} onChange={e=>saf(p=>({...p,sector:e.target.value}))}/></div>
           <Inp label="Revenue (USD)" type="number" value={af.revenue} onChange={e=>saf(p=>({...p,revenue:e.target.value}))}/>
@@ -1807,7 +1906,7 @@ function WRE({assets,setAssets,showToast}){
         ))}
       </div>
       <Modal open={showAdd} onClose={()=>sa(false)} title="Add Real Estate Asset">
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
+        <div className="form-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
           <Inp label="Asset Name *" value={af.name} onChange={e=>saf(p=>({...p,name:e.target.value}))}/>
           <div style={{paddingLeft:16}}><Sel label="Type" value={af.type} onChange={e=>saf(p=>({...p,type:e.target.value}))} options={["Logistics","Multifamily","Commercial","Life Science","Retail","Mixed-Use"]}/></div>
           <Inp label="Location" value={af.location} onChange={e=>saf(p=>({...p,location:e.target.value}))}/>
@@ -1986,9 +2085,6 @@ function WEmail({clients,workers,user,showToast}){
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  APP ROOT — URL-aware router
-// ─────────────────────────────────────────────────────────────────────────────
 // ── WORKER: WORKERS MANAGEMENT ────────────────────────────────────────────────
 function WWorkers({workers,addWorker,updateWorker,removeWorker,showToast}){
   const blank={name:"",email:"",phone:"",role:"",dept:""};
@@ -2061,7 +2157,7 @@ function WWorkers({workers,addWorker,updateWorker,removeWorker,showToast}){
       </div>
 
       <Modal open={showAdd} onClose={()=>{sa(false);sei(null);sf(blank);}} title={editId?"Edit Worker":"Add New Worker"} width={520}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
+        <div className="form-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
           <Inp label="Full Name *" value={form.name} onChange={e=>sf(p=>({...p,name:e.target.value}))}/>
           <div style={{paddingLeft:16}}><Inp label="Email Address *" type="email" value={form.email} onChange={e=>sf(p=>({...p,email:e.target.value}))}/></div>
           <Inp label="Phone" value={form.phone} onChange={e=>sf(p=>({...p,phone:e.target.value}))} placeholder="+12125550101"/>
@@ -2089,13 +2185,15 @@ function WWorkers({workers,addWorker,updateWorker,removeWorker,showToast}){
   );
 }
 
-
+// ─────────────────────────────────────────────────────────────────────────────
+//  APP ROOT — URL-aware router
+// ─────────────────────────────────────────────────────────────────────────────
 export default function App(){
-  const [page,sp]=useState("home");
+  const [page,sp]=useState(()=>IS_PUBLIC?getPageFromPath():"home");
   const [investorUser,siu]=useState(null);
   const [workerUser,swu]=useState(null);
 
-  // Inject global styles once
+  // Inject global styles
   useEffect(()=>{
     let el=document.getElementById("pas-theme");
     if(!el){el=document.createElement("style");el.id="pas-theme";document.head.appendChild(el);}
@@ -2103,38 +2201,54 @@ export default function App(){
     return()=>el.remove();
   },[]);
 
-  // Set document title
+  // Document title
   useEffect(()=>{
     document.title=IS_INVESTOR?"Investor Portal — Prime Alpha Securities":IS_WORKER?"Team Console — Prime Alpha Securities":"Prime Alpha Securities";
   },[]);
 
+  // Browser back/forward
+  useEffect(()=>{
+    if(!IS_PUBLIC)return;
+    const onPop=()=>sp(getPageFromPath());
+    window.addEventListener("popstate",onPop);
+    return()=>window.removeEventListener("popstate",onPop);
+  },[]);
+
+  // Patch pushState so navigate() triggers re-render
+  useEffect(()=>{
+    if(!IS_PUBLIC)return;
+    const orig=window.history.pushState.bind(window.history);
+    window.history.pushState=function(state,...args){
+      orig(state,...args);
+      sp(getPageFromPath());
+    };
+    return()=>{window.history.pushState=orig;};
+  },[]);
+
   // ── Subdomain routing ─────────────────────────────────────────────
-  // investor.primealphasecurities.com
   if(IS_INVESTOR){
-    if(investorUser)return<InvestorPortal user={investorUser} setUser={siu} onLogout={()=>{siu(null);}}/>;
-    return<LoginPage type="investor" onSuccess={u=>{siu(u);}}/>;
+    if(investorUser)return<InvestorPortal user={investorUser} setUser={siu} onLogout={()=>siu(null)}/>;
+    return<LoginPage type="investor" onSuccess={u=>siu(u)}/>;
   }
-  // worker.primealphasecurities.com
   if(IS_WORKER){
-    if(workerUser)return<WorkerPortal user={workerUser} onLogout={()=>{swu(null);}}/>;
-    return<LoginPage type="worker" onSuccess={u=>{swu(u);}}/>;
+    if(workerUser)return<WorkerPortal user={workerUser} onLogout={()=>swu(null)}/>;
+    return<LoginPage type="worker" onSuccess={u=>swu(u)}/>;
   }
 
-  // ── Main site routing ─────────────────────────────────────────────
-  const setPage=p=>sp(p);
+  // ── Public URL routing ────────────────────────────────────────────
   const renderPage=()=>{
     switch(page){
-      case"home":             return<PublicHome setPage={setPage}/>;
+      case"home":             return<PublicHome/>;
       case"Overview":         return<WhoWeAre sub="Overview"/>;
       case"Culture":          return<WhoWeAre sub="Culture"/>;
       case"Leadership":       return<WhoWeAre sub="Leadership"/>;
       case"Civic Priorities": return<WhoWeAre sub="Civic Priorities"/>;
       case"Who We Are":       return<WhoWeAre sub="Overview"/>;
-      case"What We Do":       return<WhatWeDo sub="Overview" setPage={setPage}/>;
-      case"Private Equity":   return<WhatWeDo sub="Private Equity" setPage={setPage}/>;
-      case"Private Credit":   return<WhatWeDo sub="Private Credit" setPage={setPage}/>;
-      case"Real Estate":      return<WhatWeDo sub="Real Estate" setPage={setPage}/>;
-      case"Fixed Income & FX":return<WhatWeDo sub="Fixed Income & FX" setPage={setPage}/>;
+      case"What We Do":       return<WhatWeDo sub="Overview"/>;
+      case"Private Equity":   return<WhatWeDo sub="Private Equity"/>;
+      case"Private Credit":   return<WhatWeDo sub="Private Credit"/>;
+      case"Real Estate":      return<WhatWeDo sub="Real Estate"/>;
+      case"Fixed Income & FX":return<WhatWeDo sub="Fixed Income & FX"/>;
       case"Careers":          return<Careers/>;
       case"Research":         return<Research/>;
       case"Contact":          return<Contact/>;
@@ -2142,15 +2256,15 @@ export default function App(){
       case"Terms":
       case"Notices":
       case"Disclosures":      return<Legal type={page}/>;
-      default:                return<PublicHome setPage={setPage}/>;
+      default:                return<PublicHome/>;
     }
   };
 
   return(
     <div style={{minHeight:"100vh",background:"var(--w)"}}>
-      <PublicNav page={page} setPage={setPage}/>
+      <PublicNav/>
       {renderPage()}
-      <PublicFooter setPage={setPage}/>
+      <PublicFooter/>
     </div>
   );
 }
