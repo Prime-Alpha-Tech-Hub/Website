@@ -93,25 +93,10 @@ fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
 "
 ok "package.json set to CommonJS for server"
 
-# ── STEP 4: TLS certificate ───────────────────────────────────────────────────
-step "Setting up TLS"
-mkdir -p "$APP_DIR/certs"
-
-if [[ -f "$APP_DIR/certs/key.pem" && -f "$APP_DIR/certs/cert.pem" ]]; then
-  ok "Using existing certs in ./certs/"
-else
-  echo "  No certs/key.pem found."
-  echo "  Generating self-signed cert (browser will show 'Not secure' — fine for now)"
-  PUBLIC_IP=$(curl -s --max-time 5 http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || hostname -I | awk '{print $1}')
-  openssl req -x509 -newkey rsa:2048 \
-    -keyout "$APP_DIR/certs/key.pem" \
-    -out    "$APP_DIR/certs/cert.pem" \
-    -days 825 -nodes \
-    -subj "/C=US/O=PrimeAlphaSecurities/CN=$PUBLIC_IP" \
-    -addext "subjectAltName=IP:$PUBLIC_IP,DNS:localhost,DNS:primealphasecurities.com,DNS:investor.primealphasecurities.com,DNS:*.primealphasecurities.com" 2>/dev/null
-  chmod 600 "$APP_DIR/certs/key.pem"
-  ok "Self-signed cert generated for $PUBLIC_IP"
-fi
+# ── STEP 4: TLS ──────────────────────────────────────────────────────────────
+# TLS is terminated by the ALB (ACM certificate). EC2 only speaks plain HTTP.
+# No certs needed on the instance.
+ok "TLS handled by ALB — no certs required on EC2"
 
 # ── STEP 5: Stop any existing server ─────────────────────────────────────────
 step "Stopping existing server (if any)"
@@ -160,17 +145,17 @@ step "Starting server"
 systemctl start "$SVC"
 sleep 3
 
-# HTTP → HTTPS redirect is intentional; 301 from port 80 means server is alive
+# ALB terminates TLS — EC2 serves plain HTTP only
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/ 2>/dev/null || echo 000)
-HTTPS_CODE=$(curl -sk -o /dev/null -w "%{http_code}" https://localhost/ 2>/dev/null || echo 000)
 API_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/investor 2>/dev/null || echo 000)
+HTTPS_CODE="N/A (ALB handles TLS)"
 
 PUBLIC_IP=$(curl -s --max-time 5 http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null \
             || hostname -I | awk '{print $1}')
 
 echo ""
 # Accept 200 or 301 on HTTP (301 = redirect to HTTPS, server is healthy)
-if [[ ("$HTTP_CODE" == "200" || "$HTTP_CODE" == "301") && "$HTTPS_CODE" == "200" ]]; then
+if [[ "$HTTP_CODE" == "200" ]]; then
   echo -e "${GREEN}"
   echo "  ╔══════════════════════════════════════════════╗"
   echo "  ║          DEPLOYMENT SUCCESSFUL  ✓            ║"
@@ -178,8 +163,7 @@ if [[ ("$HTTP_CODE" == "200" || "$HTTP_CODE" == "301") && "$HTTPS_CODE" == "200"
   printf "  ║  HTTP  →  http://%-25s  ║\n"  "$PUBLIC_IP"
   printf "  ║  HTTPS →  https://%-24s  ║\n" "$PUBLIC_IP"
   echo "  ╠══════════════════════════════════════════════╣"
-  echo "  ║  HTTP=$HTTP_CODE (→301 redirect to HTTPS is correct)    ║"
-  echo "  ║  HTTPS=$HTTPS_CODE  /api=$API_CODE                          ║"
+  echo "  ║  HTTP=$HTTP_CODE  /api=$API_CODE  (TLS via ALB)               ║"
   echo "  ╠══════════════════════════════════════════════╣"
   echo "  ║  Logs:    sudo journalctl -u pas -f          ║"
   echo "  ║  Restart: sudo systemctl restart pas         ║"
@@ -203,15 +187,11 @@ if [[ ("$HTTP_CODE" == "200" || "$HTTP_CODE" == "301") && "$HTTPS_CODE" == "200"
   echo "       primealphasecurities.com  →  A  →  $PUBLIC_IP"
   echo "  (No subdomain needed — investor portal is now path-based)"
   echo ""
-  echo "  ── SSL (self-signed cert active) ─────────────────────────────"
-  echo "  Browser will show a security warning until you install a"
-  echo "  trusted cert. To fix, run on the server:"
-  echo "    sudo snap install --classic certbot"
-  echo "    sudo certbot certonly --standalone \\"
-  echo "      -d primealphasecurities.com"
-  echo "  Then copy certs to ./certs/ and redeploy."
+  echo "  ── SSL ───────────────────────────────────────────────────────"
+  echo "  TLS is terminated by the ALB using the ACM certificate."
+  echo "  The EC2 instance serves plain HTTP — no certs needed here."
   echo "  ────────────────────────────────────────────────────────────"
 else
   systemctl status "$SVC" --no-pager -l | tail -20
-  die "Server health check failed (HTTP=$HTTP_CODE HTTPS=$HTTPS_CODE). Check: sudo journalctl -u pas -n 50"
+  die "Server health check failed (HTTP=$HTTP_CODE). Check: sudo journalctl -u pas -n 50"
 fi

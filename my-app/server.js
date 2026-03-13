@@ -347,18 +347,11 @@ function handleStatic(req, res) {
   });
   if (urlPath === '/' || !path.extname(urlPath)) serve(path.join(DIST,'index.html'), null);
   else serve(resolved, path.join(DIST,'index.html'));
-}
+}}
 
-// ── Main handler ──────────────────────────────────────────────────────────────
+// ── Single handler — ALB terminates TLS, EC2 always receives plain HTTP ───────
+// The ALB handles HTTP→HTTPS redirect if needed. Server just serves everything.
 function handler(req, res) {
-  // Redirect plain HTTP → HTTPS so investor.primealphasecurities.com works
-  // Skip redirect for API calls (EC2 healthchecks use HTTP)
-  if (!req.socket.encrypted && !req.url.startsWith('/api/')) {
-    const host = (req.headers.host || 'primealphasecurities.com').replace(/:\d+$/, '');
-    res.writeHead(301, { Location: `https://${host}${req.url}` });
-    res.end();
-    return;
-  }
   if (req.url.startsWith('/api/notify/')) return handleNotify(req, res);
   if (req.url.startsWith('/api/'))        return handleApi(req, res);
   handleStatic(req, res);
@@ -368,16 +361,4 @@ http.createServer(handler)
   .listen(PORT_HTTP, '0.0.0.0', () => console.log(`[HTTP]  → http://0.0.0.0:${PORT_HTTP}`))
   .on('error', e => console.error('[HTTP] ', e.message));
 
-try {
-  const tls = { key: fs.readFileSync(path.join(CERTS,'key.pem')), cert: fs.readFileSync(path.join(CERTS,'cert.pem')) };
-  https.createServer(tls, handler)
-    .listen(PORT_HTTPS, '0.0.0.0', () => console.log(`[HTTPS] → https://0.0.0.0:${PORT_HTTPS}`))
-    .on('error', e => console.error('[HTTPS]', e.message));
-} catch { console.warn('[HTTPS] No certs — HTTPS disabled'); }
-
 process.on('SIGTERM', () => process.exit(0));
-process.on('SIGINT',  () => process.exit(0));
-
-if (!SES_FROM)     console.warn('[CONFIG] SES_FROM_EMAIL not set — emails will be skipped');
-if (!NOTIFY_EMAIL) console.warn('[CONFIG] NOTIFY_EMAIL not set — contact/credit alerts will be skipped');
-console.log(`[PAS]   Region: ${REGION} | From: ${SES_FROM||'(not set)'} | Notify: ${NOTIFY_EMAIL||'(not set)'}`);
