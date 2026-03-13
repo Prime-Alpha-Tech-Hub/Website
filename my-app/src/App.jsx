@@ -1359,13 +1359,7 @@ function FundTerms(){
         "Performance is calculated per fund. An 'eat what you kill' culture means every deal team is directly accountable for the returns they generate.",
         "Minimum investment levels and co-investment opportunities are available on a case-by-case basis. Contact us to discuss your allocation.",
       ],
-      roadTitle: "Growth Roadmap",
-      road: [
-        ["2024", "Launch",      "Seed capital deployed across peer lending and first private equity deals. The track record begins."],
-        ["2025", "Foundation",  "Multi-strategy fund formalised. First institutional-quality track record established with zero outside capital."],
-        ["2026", "Scale",       "Four active strategies running simultaneously. Real Estate fundraise launched in the United States."],
-        ["2027 onward", "TBC",  "Milestones and targets for subsequent years are being formalised and will be published once confirmed."],
-      ],
+
       cta:"Get In Touch",
     },
     fr:{
