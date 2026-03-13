@@ -79,8 +79,12 @@ ok "Frontend built → $APP_DIR/dist/ ($(du -sh dist | cut -f1))"
 
 # ── STEP 3: Server-side AWS SDK ───────────────────────────────────────────────
 # AWS SDK is in package.json dependencies — already installed in STEP 1 (npm install)
-# server.cjs uses .cjs extension so Node.js treats it as CommonJS always.
+# server.js uses .cjs extension so Node.js treats it as CommonJS always.
 ok "AWS SDK ready (installed via npm in step 1)"
+
+# Vite build is done — now remove "type":"module" so server.js (require/CommonJS) works
+node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));delete p.type;fs.writeFileSync('package.json',JSON.stringify(p,null,2));" 2>/dev/null || true
+ok "package.json: type:module removed for server.js (CommonJS)"
 
 # ── STEP 4: TLS ──────────────────────────────────────────────────────────────
 # TLS is terminated by the ALB (ACM certificate). EC2 only speaks plain HTTP.
@@ -109,7 +113,7 @@ Wants=network-online.target
 Type=simple
 User=root
 WorkingDirectory=${APP_DIR}
-ExecStart=${NODE_BIN} ${APP_DIR}/server.cjs
+ExecStart=${NODE_BIN} ${APP_DIR}/server.js
 Restart=always
 RestartSec=5
 StandardOutput=append:${APP_DIR}/server.log
