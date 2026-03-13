@@ -143,8 +143,8 @@ StandardError=append:${APP_DIR}/server.log
 Environment=NODE_ENV=production
 Environment=PORT_HTTP=80
 Environment=PORT_HTTPS=443
-Environment=AWS_REGION=us-east-1
-Environment=SES_FROM_EMAIL=noreply@primealphasecurities.com
+Environment=AWS_REGION=eu-west-2
+Environment=SES_FROM_EMAIL=compliance@primealphasecurities.com
 Environment=NOTIFY_EMAIL=aurel.botouli@primealphasecurities.com
 
 [Install]
@@ -174,9 +174,9 @@ if [[ "$HTTP_CODE" == "200" ]]; then
   echo "  ║          DEPLOYMENT SUCCESSFUL  ✓            ║"
   echo "  ╠══════════════════════════════════════════════╣"
   printf "  ║  HTTP  →  http://%-25s  ║\n"  "$PUBLIC_IP"
-  printf "  ║  HTTPS →  https://%-24s  ║\n" "$PUBLIC_IP"
+  # printf "  ║  HTTPS →  https://%-24s  ║\n" "$PUBLIC_IP"
   echo "  ╠══════════════════════════════════════════════╣"
-  echo "  ║  API status: HTTP=$HTTP_CODE  HTTPS=$HTTPS_CODE  /api=$API_CODE       ║"
+  echo "  ║  API status: HTTP=$HTTP_CODE   /api=$API_CODE       ║"
   echo "  ╠══════════════════════════════════════════════╣"
   echo "  ║  Logs:   sudo journalctl -u pas -f           ║"
   echo "  ║  Restart: sudo systemctl restart pas         ║"
