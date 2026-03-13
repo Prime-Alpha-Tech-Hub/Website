@@ -78,20 +78,9 @@ npm run build 2>&1 | tee -a "$LOG" | tail -5
 ok "Frontend built → $APP_DIR/dist/ ($(du -sh dist | cut -f1))"
 
 # ── STEP 3: Server-side AWS SDK ───────────────────────────────────────────────
-step "Installing server-side AWS SDK"
-# Install into the same node_modules — server.js uses require()
-npm install @aws-sdk/client-dynamodb @aws-sdk/util-dynamodb @aws-sdk/client-sesv2 2>&1 | tee -a "$LOG" | tail -2
-ok "AWS SDK installed (server-side only)"
-
-# Convert package type to commonjs for server.js (it uses require())
-# Vite build is already complete so this is safe to change now
-node -e "
-const fs = require('fs');
-const pkg = JSON.parse(fs.readFileSync('package.json'));
-delete pkg.type;  // remove 'module' — server.js uses require()
-fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-"
-ok "package.json set to CommonJS for server"
+# AWS SDK is in package.json dependencies — already installed in STEP 1 (npm install)
+# server.cjs uses .cjs extension so Node.js treats it as CommonJS always.
+ok "AWS SDK ready (installed via npm in step 1)"
 
 # ── STEP 4: TLS ──────────────────────────────────────────────────────────────
 # TLS is terminated by the ALB (ACM certificate). EC2 only speaks plain HTTP.
@@ -120,7 +109,7 @@ Wants=network-online.target
 Type=simple
 User=root
 WorkingDirectory=${APP_DIR}
-ExecStart=${NODE_BIN} ${APP_DIR}/server.js
+ExecStart=${NODE_BIN} ${APP_DIR}/server.cjs
 Restart=always
 RestartSec=5
 StandardOutput=append:${APP_DIR}/server.log
