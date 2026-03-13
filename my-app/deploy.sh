@@ -143,8 +143,8 @@ StandardError=append:${APP_DIR}/server.log
 Environment=NODE_ENV=production
 Environment=PORT_HTTP=80
 Environment=PORT_HTTPS=443
-Environment=AWS_REGION=eu-west-2
-Environment=SES_FROM_EMAIL=compliance@primealphasecurities.com
+Environment=AWS_REGION=us-east-1
+Environment=SES_FROM_EMAIL=noreply@primealphasecurities.com
 Environment=NOTIFY_EMAIL=aurel.botouli@primealphasecurities.com
 
 [Install]
@@ -160,27 +160,30 @@ step "Starting server"
 systemctl start "$SVC"
 sleep 3
 
+# HTTP → HTTPS redirect is intentional; 301 from port 80 means server is alive
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/ 2>/dev/null || echo 000)
-# HTTPS_CODE=$(curl -sk -o /dev/null -w "%{http_code}" https://localhost/ 2>/dev/null || echo 000)
+HTTPS_CODE=$(curl -sk -o /dev/null -w "%{http_code}" https://localhost/ 2>/dev/null || echo 000)
 API_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/investor 2>/dev/null || echo 000)
 
 PUBLIC_IP=$(curl -s --max-time 5 http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null \
             || hostname -I | awk '{print $1}')
 
 echo ""
-if [[ "$HTTP_CODE" == "200" ]]; then
+# Accept 200 or 301 on HTTP (301 = redirect to HTTPS, server is healthy)
+if [[ ("$HTTP_CODE" == "200" || "$HTTP_CODE" == "301") && "$HTTPS_CODE" == "200" ]]; then
   echo -e "${GREEN}"
   echo "  ╔══════════════════════════════════════════════╗"
   echo "  ║          DEPLOYMENT SUCCESSFUL  ✓            ║"
   echo "  ╠══════════════════════════════════════════════╣"
   printf "  ║  HTTP  →  http://%-25s  ║\n"  "$PUBLIC_IP"
-  # printf "  ║  HTTPS →  https://%-24s  ║\n" "$PUBLIC_IP"
+  printf "  ║  HTTPS →  https://%-24s  ║\n" "$PUBLIC_IP"
   echo "  ╠══════════════════════════════════════════════╣"
-  echo "  ║  API status: HTTP=$HTTP_CODE   /api=$API_CODE       ║"
+  echo "  ║  HTTP=$HTTP_CODE (→301 redirect to HTTPS is correct)    ║"
+  echo "  ║  HTTPS=$HTTPS_CODE  /api=$API_CODE                          ║"
   echo "  ╠══════════════════════════════════════════════╣"
-  echo "  ║  Logs:   sudo journalctl -u pas -f           ║"
+  echo "  ║  Logs:    sudo journalctl -u pas -f          ║"
   echo "  ║  Restart: sudo systemctl restart pas         ║"
-  echo "  ║  Stop:   sudo systemctl stop pas             ║"
+  echo "  ║  Stop:    sudo systemctl stop pas            ║"
   echo "  ╚══════════════════════════════════════════════╝"
   echo -e "${NC}"
   if [[ "$API_CODE" == "200" ]]; then
@@ -190,34 +193,25 @@ if [[ "$HTTP_CODE" == "200" ]]; then
     echo "  App still works — falls back to demo data"
   fi
   echo ""
-  echo "  ── INVESTOR SUBDOMAIN SETUP ──────────────────────────────────"
-  echo "  The server is running. For investor.primealphasecurities.com"
-  echo "  to work you need ALL FOUR of these:"
+  echo "  ── PORTAL URLS ───────────────────────────────────────────────"
+  echo "  Public site    → https://primealphasecurities.com"
+  echo "  Investor portal → https://primealphasecurities.com/investor"
+  echo "  Worker console  → https://primealphasecurities.com/worker"
   echo ""
-  echo "  1. DNS — Add A records in Route 53 / your DNS provider:"
-  echo "       primealphasecurities.com          →  $PUBLIC_IP"
-  echo "       investor.primealphasecurities.com →  $PUBLIC_IP"
-  echo "     (TTL 300 is fine; changes can take up to 1hr to propagate)"
+  echo "  ── DNS SETUP (required if not already done) ──────────────────"
+  echo "  In Route 53 / your DNS provider, add ONE A record:"
+  echo "       primealphasecurities.com  →  A  →  $PUBLIC_IP"
+  echo "  (No subdomain needed — investor portal is now path-based)"
   echo ""
-  echo "  2. EC2 Security Group — inbound rules must allow:"
-  echo "       Port 443 (HTTPS) from 0.0.0.0/0"
-  echo "       Port 80  (HTTP)  from 0.0.0.0/0"
-  echo "     Check: AWS Console → EC2 → Security Groups → Inbound Rules"
-  echo ""
-  echo "  3. SSL cert — The self-signed cert covers investor.* but browsers"
-  echo "     will show a warning. To get a trusted cert (no warning) run:"
-  echo "       sudo snap install --classic certbot"
-  echo "       sudo certbot certonly --standalone -d primealphasecurities.com -d investor.primealphasecurities.com"
-  echo "     Then update deploy.sh CERTS path to certbot output and redeploy."
-  echo ""
-  echo "  4. Verify — Once DNS propagates, test with:"
-  echo "       curl -I https://investor.primealphasecurities.com"
-  echo "     Should return HTTP 200. The React app detects the subdomain"
-  echo "     via window.location.hostname and loads the Investor Portal."
-  echo ""
-  echo "  Worker console → https://primealphasecurities.com/worker"
+  echo "  ── SSL (self-signed cert active) ─────────────────────────────"
+  echo "  Browser will show a security warning until you install a"
+  echo "  trusted cert. To fix, run on the server:"
+  echo "    sudo snap install --classic certbot"
+  echo "    sudo certbot certonly --standalone \\"
+  echo "      -d primealphasecurities.com"
+  echo "  Then copy certs to ./certs/ and redeploy."
   echo "  ────────────────────────────────────────────────────────────"
 else
   systemctl status "$SVC" --no-pager -l | tail -20
-  die "Server health check failed (HTTP=$HTTP_CODE). Check: sudo journalctl -u pas -n 50"
+  die "Server health check failed (HTTP=$HTTP_CODE HTTPS=$HTTPS_CODE). Check: sudo journalctl -u pas -n 50"
 fi
