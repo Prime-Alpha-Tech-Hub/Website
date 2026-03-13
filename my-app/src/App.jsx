@@ -18,7 +18,7 @@
 //    credit_application PK: appId       (S)
 //    real_estate        PK: assetId     (S)
 //    articles           PK: articleId   (S)
-//    enquiries          PK: enquiryId   (S)
+//    inquiries          PK: inquiryId   (S)
 
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 
@@ -148,7 +148,7 @@ const api = {
 };
 // ── Notification helpers — POST /api/notify/* ─────────────────────────────────
 const notify = {
-  async enquiry(data)    { try { await fetch('/api/notify/enquiry',     {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); } catch(e){console.warn('[notify]',e.message);} },
+  async inquiry(data)    { try { await fetch('/api/notify/inquiry',     {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); } catch(e){console.warn('[notify]',e.message);} },
   async credit(data)     { try { await fetch('/api/notify/credit',      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); } catch(e){console.warn('[notify]',e.message);} },
   async calendar(data)   { try { await fetch('/api/notify/calendar',    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); } catch(e){console.warn('[notify]',e.message);} },
   async workerEmail(data){ try { await fetch('/api/notify/worker-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); } catch(e){console.warn('[notify]',e.message);} },
@@ -282,64 +282,136 @@ const now= () => new Date().toISOString().slice(0,10);
 //  GLOBAL STYLES  (Citadel-inspired: white, near-black, electric blue)
 // ─────────────────────────────────────────────────────────────────────────────
 const THEME = `
-@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=Barlow+Condensed:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --w:#FFFFFF;--ow:#F7F8FA;--lg:#ECEEF2;--mg:#D0D4DC;--dim:#8A9099;
-  --body:#1E2330;--head:#0B0F1A;
-  --blue:#0057FF;--blue-h:#0046CC;--blue-l:#E8EFFE;--blue-m:rgba(0,87,255,0.1);
-  --green:#00875A;--red:#C0392B;--amber:#B45309;
-  --ff-h:'Barlow Condensed',sans-serif;
-  --ff-b:'Barlow',sans-serif;
-  --ff-m:'IBM Plex Mono',monospace;
-  --r:3px;--rl:6px;
-  --bdr:1px solid #DDDFE5;
-  --sh:0 1px 3px rgba(0,0,0,0.06);
-  --sh-md:0 4px 16px rgba(0,0,0,0.08);
-  --sh-lg:0 12px 40px rgba(0,0,0,0.11);
+/* ── Fonts ─────────────────────────────────────────────────────────────── */
+/* TT Commons is self-hosted; fallback chain covers all environments */
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Brand blues */
+  --blue-primary:      #144aa5;
+  --blue-dark:         #08225a;
+  --blue-secondary:    #002583;
+  --blue-dark-alt:     #1c409b;
+  --blue-light:        #558ff0;
+  --blue-light-alt:    #427fe5;
+  --blue-light-accent: #7dadff;
+  --blue-dark-sec:     #001a64;
+  --base-1:            #1c409b;
+
+  /* Grays */
+  --gray-primary:         #555;
+  --gray-primary-darker:  #444;
+  --gray-primary-light:   #989ca1;
+  --gray-primary-lighter: #bfc2c5;
+  --gray-primary-lighter2:#f6f6f6;
+  --gray-dark:            #535461;
+  --gray-dark-alt:        #0f0f14;
+  --gray-dark-sec:        #9fa0a1;
+  --gray-light:           #d0d1d4;
+  --gray-light-alt:       #ece9e4;
+  --gray-light-secondary: #efefef;
+  --gray-texts:           #68717a;
+  --gray-texts-light:     #c4cad7;
+
+  /* Accent */
+  --gold-primary:      #f8ce56;
+  --gold-sec:          #fae57f;
+  --ghost:             #c4cad7;
+  --link-water:        #d6e0f6;
+  --green:             #6ee8e9;
+  --blue-primary-sec:  #29b8ce;
+  --blue-primary-sec-alt: #6ee8e9;
+  --blue-primary-sec-muted: #182331;
+  --dark-text-sec:     #101213;
+  --dark-text-sec-alt: #181739;
+  --white:             #fff;
+  --black:             #000;
+  --blue-icon-default: #0039e8;
+
+  /* Semantic aliases used throughout the app */
+  --blue:    var(--blue-primary);
+  --blue-h:  var(--blue-dark);
+  --blue-l:  var(--link-water);
+  --blue-m:  rgba(20, 74, 165, 0.10);
+  --w:       var(--white);
+  --ow:      var(--gray-primary-lighter2);
+  --lg:      var(--gray-light-secondary);
+  --mg:      var(--gray-light);
+  --dim:     var(--gray-primary-light);
+  --body:    var(--gray-primary);
+  --head:    var(--blue-dark);
+  --red:     #C0392B;
+  --amber:   #B45309;
+
+  /* Font stack */
+  --ff-b: 'TT Commons', 'HelveticaNeueLTStd-Roman', Helvetica, Arial, sans-serif;
+  --ff-h: 'TT Commons', 'HelveticaNeueLTStd-Roman', Helvetica, Arial, sans-serif;
+  --ff-m: 'Courier New', Courier, monospace;
+
+  /* UI tokens */
+  --r:     4px;
+  --rl:    8px;
+  --bdr:   1px solid var(--gray-light);
+  --sh:    0 1px 4px rgba(8,34,90,0.06);
+  --sh-md: 0 4px 18px rgba(8,34,90,0.10);
+  --sh-lg: 0 12px 40px rgba(8,34,90,0.14);
 }
-html{scroll-behavior:smooth}
-body{font-family:var(--ff-b);background:var(--w);color:var(--body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--lg)}::-webkit-scrollbar-thumb{background:var(--mg);border-radius:2px}
-a{color:inherit;text-decoration:none}button{cursor:pointer;border:none;background:none;font-family:inherit}
-input,textarea,select{font-family:inherit}
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes slideRight{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--ff-b);
+  background: var(--w);
+  color: var(--body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--lg); }
+::-webkit-scrollbar-thumb { background: var(--mg); border-radius: 2px; }
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+input, textarea, select { font-family: inherit; }
 
-.fu{animation:fadeUp 0.45s cubic-bezier(.4,0,.2,1) both}
-.fi{animation:fadeIn 0.3s ease both}
-.sr{animation:slideRight 0.35s ease both}
-.fu-1{animation-delay:0.08s}.fu-2{animation-delay:0.16s}.fu-3{animation-delay:0.24s}.fu-4{animation-delay:0.32s}
+@keyframes fadeUp    { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn    { from { opacity:0; } to { opacity:1; } }
+@keyframes slideRight{ from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:translateX(0); } }
+@keyframes spin      { to { transform:rotate(360deg); } }
+@keyframes pulse     { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+.fu  { animation: fadeUp    0.45s cubic-bezier(.4,0,.2,1) both; }
+.fi  { animation: fadeIn    0.30s ease both; }
+.sr  { animation: slideRight 0.35s ease both; }
+.fu-1{ animation-delay:0.08s; } .fu-2{ animation-delay:0.16s; }
+.fu-3{ animation-delay:0.24s; } .fu-4{ animation-delay:0.32s; }
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
-.desk-nav{display:flex!important}
-.mob-btn{display:none!important}
+.desk-nav { display: flex !important; }
+.mob-btn  { display: none !important; }
 
-@media(max-width:900px){
-  .desk-nav{display:none!important}
-  .mob-btn{display:flex!important}
-  .rg-2{grid-template-columns:1fr!important}
-  .rg-4{grid-template-columns:1fr 1fr!important}
-  .rg-ft{grid-template-columns:1fr 1fr!important}
-  .hero-grid{grid-template-columns:1fr!important}
-  .px-page{padding-left:24px!important;padding-right:24px!important}
-  .px-hero{padding-left:24px!important;padding-right:24px!important;padding-top:80px!important}
+@media (max-width: 900px) {
+  .desk-nav { display: none !important; }
+  .mob-btn  { display: flex !important; }
+  .rg-2  { grid-template-columns: 1fr !important; }
+  .rg-4  { grid-template-columns: 1fr 1fr !important; }
+  .rg-ft { grid-template-columns: 1fr 1fr !important; }
+  .hero-grid  { grid-template-columns: 1fr !important; }
+  .px-page    { padding-left: 24px !important; padding-right: 24px !important; }
+  .px-hero    { padding-left: 24px !important; padding-right: 24px !important; padding-top: 80px !important; }
 }
-@media(max-width:600px){
-  .rg-4{grid-template-columns:1fr!important}
-  .rg-ft{grid-template-columns:1fr!important}
-  .rg-2{grid-template-columns:1fr!important}
-  .px-page{padding-left:16px!important;padding-right:16px!important}
-  .form-2col{grid-template-columns:1fr!important}
-  .form-2col>div{padding-left:0!important}
-  .stat-grid{grid-template-columns:1fr 1fr!important}
-  .hide-sm{display:none!important}
+@media (max-width: 600px) {
+  .rg-4        { grid-template-columns: 1fr !important; }
+  .rg-ft       { grid-template-columns: 1fr !important; }
+  .rg-2        { grid-template-columns: 1fr !important; }
+  .px-page     { padding-left: 16px !important; padding-right: 16px !important; }
+  .form-2col   { grid-template-columns: 1fr !important; }
+  .form-2col > div { padding-left: 0 !important; }
+  .stat-grid   { grid-template-columns: 1fr 1fr !important; }
+  .hide-sm     { display: none !important; }
 }
 `;
+
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  STYLE TOKENS
@@ -694,14 +766,6 @@ function PublicFooter(){
         <div className="rg-ft" style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:48,marginBottom:48}}>
           <div>
             <div style={{marginBottom:16}}><Logo height={32} dark/></div>
-            <p style={{fontSize:13,lineHeight:1.85,maxWidth:270}}>
-              {lang==="en"
-                ?"Pan-African alternative investment management across Private Equity, Private Credit, Commodities, and Real Estate. CEMAC · West Africa · USA."
-                :"Gestion d'investissements alternatifs panafricaine en Private Equity, Crédit Privé, Matières Premières et Immobilier. CEMAC · Afrique de l'Ouest · USA."}
-            </p>
-            <div style={{marginTop:20,fontSize:10,letterSpacing:"0.1em",textTransform:"uppercase",color:"rgba(255,255,255,0.3)"}}>
-              {lang==="en"?"Alternative Investment Management · Pan-African Platform":"Gestion d'Investissements Alternatifs · Plateforme Panafricaine"}
-            </div>
           </div>
           {navLinks.map(([h,items])=>(
             <div key={h}>
@@ -1054,14 +1118,6 @@ function WhoWeAre({sub}){
             <p style={{color:"var(--body)",fontSize:15,fontStyle:"italic",lineHeight:1.7}}>{d.quote}</p>
           </blockquote>}
         </div>}
-          <div key={title} style={{...T.card,marginBottom:14,display:"flex",gap:18,alignItems:"flex-start"}}>
-            <div style={{width:38,height:38,background:"var(--blue)",borderRadius:"var(--r)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:16,flexShrink:0}}>◆</div>
-            <div>
-              <h3 style={{...T.hdg,fontSize:17,marginBottom:6}}>{title}</h3>
-              <p style={{color:"var(--dim)",lineHeight:1.85}}>{desc}</p>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -1070,66 +1126,154 @@ function WhoWeAre({sub}){
 // ─────────────────────────────────────────────────────────────────────────────
 //  WHAT WE DO
 // ─────────────────────────────────────────────────────────────────────────────
-function WhatWeDo({sub}){
-  const [lang]=useLang();
-  if(sub==="Private Credit")return <PrivateCreditPublic/>;
-  if(sub==="Overview")return(
-    <div>
-      <PageHero eyebrow={lang==="en"?"Capital Solutions":"Stratégies d'Investissement"} title={lang==="en"?"WHAT WE DO":"CE QUE NOUS FAISONS"} body={lang==="en"?"Prime Alpha Securities operates four integrated capital platforms, each with dedicated teams and independent mandates — coordinated at the portfolio level.":"Prime Alpha Securities opère quatre plateformes de capital intégrées, chacune avec des équipes dédiées et des mandats indépendants — coordonnés au niveau du portefeuille global."}/>
-      <div style={{maxWidth:960,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
-        <div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
-          {["Private Equity","Private Credit","Commodities","Real Estate"].map(s=>(
-            <button key={s} onClick={()=>navigate(s)} style={{...T.card,textAlign:"left",cursor:"pointer",borderLeft:"3px solid var(--blue)",transition:"box-shadow 0.15s"}}
-              onMouseEnter={e=>e.currentTarget.style.boxShadow="var(--sh-md)"}
-              onMouseLeave={e=>e.currentTarget.style.boxShadow="var(--sh)"}>
-              <h3 style={{...T.hdg,fontSize:20,marginBottom:6}}>{s}</h3>
-              <div style={{color:"var(--blue)",fontSize:13,fontWeight:700}}>{lang==="en"?"Explore →":"Explorer →"}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-  const strats={
-    "Private Equity":{
-      en:{body:"We acquire controlling or meaningful stakes in private businesses and select publicly listed companies, with the objective of operational transformation and long-term value creation. Strategies include buy-and-build, sector consolidation, and taking public companies private.",
-        items:["Focus: Africa — retail, consumer staples, high-growth sectors","Buy-and-build and sector consolidation strategies","Hold period: 3–7 years","Strong EBITDA from consumer staples and cash-flowing businesses","Portfolio allocation: ~60% of AUM ($1.15M)"]},
-      fr:{body:"Nous acquérons des participations significatives ou majoritaires dans des entreprises privées et certaines sociétés cotées, en vue d'une transformation opérationnelle et d'une création de valeur à long terme. Cela inclut les stratégies de build-up, consolidation sectorielle, et retrait de la cote.",
-        items:["Focus : Afrique — distribution, conso. de base, secteurs à forte croissance","Stratégies de build-up et consolidation sectorielle","Durée de détention : 3–7 ans","EBITDA solide des biens de consommation et secteurs défensifs","Allocation : ~60% de l'AUM (1,15 M$)"]},
+function WhatWeDo({ sub }) {
+  const [lang] = useLang();
+
+  // ── Strategy content ──────────────────────────────────────────────────────
+  const STRATEGIES = {
+
+    "Private Equity": {
+      en: {
+        eyebrow: "Capital Solutions",
+        body: "We acquire controlling or meaningful stakes in private businesses across Africa, with a focus on operational transformation and long-term value creation. Our approach spans buy-and-build programs, sector consolidation and selective public-to-private transactions in markets where we have deep local knowledge.",
+        items: [
+          "Geographic focus on CEMAC and West African markets, primarily in retail, consumer staples and high-growth sectors.",
+          "We pursue buy-and-build programs and sector consolidation where fragmented markets create a structural opportunity.",
+          "Target hold periods typically range from three to seven years, with exits designed to preserve and extend the value created.",
+          "We prioritise businesses with strong cash generation and defensible market positions, particularly in consumer-facing sectors.",
+        ],
+      },
+      fr: {
+        eyebrow: "Stratégies d'Investissement",
+        body: "Nous acquérons des participations significatives ou majoritaires dans des entreprises privées africaines, avec pour objectif une transformation opérationnelle et une création de valeur à long terme. Notre approche couvre les build-ups, la consolidation sectorielle et des sorties de cote dans des marchés où nous disposons d'une connaissance locale approfondie.",
+        items: [
+          "Focus géographique sur les marchés CEMAC et Afrique de l'Ouest, principalement dans la distribution, la consommation courante et les secteurs à forte croissance.",
+          "Nous menons des programmes de build-up et de consolidation sectorielle là où la fragmentation crée une opportunité structurelle.",
+          "Les durées de détention visées s'étendent généralement de trois à sept ans, avec des sorties conçues pour préserver et amplifier la valeur créée.",
+          "Nous privilégions les entreprises à forte génération de trésorerie et à position de marché défendable.",
+        ],
+      },
     },
-    "Commodities":{
-      en:{body:"We invest in and trade physical commodities across four verticals: textile and cotton trade, luxury goods, agricultural commodities (grains, soft commodities), and livestock/cattle. We build regional sourcing networks and capture margin across the supply chain.",
-        items:["Textiles & cotton trade — CEMAC and West Africa","Luxury goods — rising urban demand in Senegal and West Africa","Agricultural commodities: grains, soft commodities","Livestock and cattle — local sourcing networks","Hold period: Spot to 18 months · Portfolio allocation: ~18% of AUM ($350K)"]},
-      fr:{body:"Nous investissons dans et négocions des matières premières physiques sur quatre verticaux : commerce du textile et du coton, produits de luxe, matières premières agricoles (céréales, cultures tendres), et élevage/bétail. Réseaux d'approvisionnement régionaux, logistique maîtrisée.",
-        items:["Textile & coton — CEMAC et Afrique de l'Ouest","Produits de luxe — montée en puissance de la demande urbaine au Sénégal","Matières premières agricoles : céréales, cultures tendres","Bétail et élevage — réseaux d'approvisionnement locaux","Durée : Spot à 18 mois · Allocation : ~18% de l'AUM (350 K$)"]},
+
+    "Commodities": {
+      en: {
+        eyebrow: "Capital Solutions",
+        body: "We invest in and trade physical commodities across four verticals: textile and cotton, luxury goods, agricultural commodities including grains and soft commodities, and livestock. Our edge is built on regional sourcing networks and deep supply chain knowledge developed on the ground across the CEMAC and West African corridor.",
+        items: [
+          "Textile and cotton trade across CEMAC and West Africa, leveraging established sourcing relationships.",
+          "Luxury goods serving rising urban demand in Senegal, Cameroon and West Africa more broadly.",
+          "Agricultural commodities including grains and soft commodities with logistics managed regionally.",
+          "Livestock and cattle sourced through local networks with strong operational oversight.",
+        ],
+      },
+      fr: {
+        eyebrow: "Stratégies d'Investissement",
+        body: "Nous investissons et négocions des matières premières physiques sur quatre verticaux : textile et coton, produits de luxe, matières premières agricoles incluant céréales et cultures tendres, et élevage. Notre avantage repose sur des réseaux d'approvisionnement régionaux et une connaissance approfondie de la chaîne logistique dans le corridor CEMAC et Afrique de l'Ouest.",
+        items: [
+          "Commerce du textile et du coton à travers le CEMAC et l'Afrique de l'Ouest, en s'appuyant sur des relations d'approvisionnement établies.",
+          "Produits de luxe répondant à la demande urbaine croissante au Sénégal, au Cameroun et dans l'Afrique de l'Ouest.",
+          "Matières premières agricoles incluant céréales et cultures tendres avec une logistique gérée régionalement.",
+          "Bétail et élevage approvisionnés via des réseaux locaux avec un suivi opérationnel solide.",
+        ],
+      },
     },
-    "Real Estate":{
-      en:{body:"U.S.-based strategy, currently in active fundraising. We target residential and multifamily properties via fix-and-flip, buy-and-hold, and distressed/special situation strategies. As capital scales, we expand into commercial, office, warehouse and opportunistic assets.",
-        items:["Primary market: USA — residential & multifamily","Strategies: fix-and-flip, buy-and-hold, distressed/special situations","Expansion targets: commercial, office, warehouse","Hold period: 6 months to 5+ years","Currently fundraising — contact us to discuss participation"]},
-      fr:{body:"Stratégie basée aux États-Unis, en phase active de levée de fonds. Nous ciblons initialement le résidentiel et le multifamilial via réhabilitation-revente, buy-and-hold et situations spéciales. Extension future : commercial, bureaux, entrepôts, actifs opportunistes.",
-        items:["Marché principal : USA — résidentiel & multifamilial","Stratégies : réhabilitation-revente, buy-and-hold, situations spéciales","Extensions : commercial, bureaux, entrepôts","Durée : 6 mois à 5+ ans","En levée de fonds — contactez-nous pour discuter de votre participation"]},
+
+    "Real Estate": {
+      en: {
+        eyebrow: "Capital Solutions",
+        body: "Our U.S. real estate strategy is currently in active fundraising. We target residential and multifamily properties through renovation and resale, long-term buy-and-hold, and distressed or special situation acquisitions. As capital scales, the mandate expands into commercial, office and warehouse assets.",
+        items: [
+          "Primary market focus on the United States, targeting residential and multifamily properties where value-add opportunities are clearly identifiable.",
+          "Core strategies include renovation and resale programs, long-term income-generating holdings, and distressed or special situation acquisitions.",
+          "The mandate is designed to expand into commercial, office and warehouse properties as the capital base grows.",
+          "This strategy is currently in active fundraising. Reach out to discuss participation and allocation.",
+        ],
+      },
+      fr: {
+        eyebrow: "Stratégies d'Investissement",
+        body: "Notre stratégie immobilière américaine est en phase active de levée de fonds. Nous ciblons les biens résidentiels et multifamiliaux via réhabilitation-revente, détention longue durée et situations spéciales ou actifs en difficulté. À mesure que le capital croît, le mandat s'étend aux actifs commerciaux, bureaux et entrepôts.",
+        items: [
+          "Focus principal sur les États-Unis, ciblant les biens résidentiels et multifamiliaux où les opportunités de création de valeur sont clairement identifiables.",
+          "Les stratégies principales incluent les programmes de réhabilitation-revente, les détentions génératrices de revenus à long terme, et les acquisitions en difficulté ou situations spéciales.",
+          "Le mandat est conçu pour s'étendre aux biens commerciaux, bureaux et entrepôts au fur et à mesure de la croissance du capital.",
+          "Cette stratégie est en levée de fonds active. Contactez-nous pour discuter de votre participation et allocation.",
+        ],
+      },
     },
   };
-  const s=strats[sub];
-  const d=s?s[lang]||s.en:null;
-  return(
+
+  // ── Overview page ─────────────────────────────────────────────────────────
+  if (sub === "Overview") {
+    const cards = [
+      { key: "Private Equity",  label: lang === "en" ? "Private Equity"  : "Private Equity"  },
+      { key: "Private Credit",  label: lang === "en" ? "Private Credit"  : "Crédit Privé"    },
+      { key: "Commodities",     label: lang === "en" ? "Commodities"     : "Matières Premières" },
+      { key: "Real Estate",     label: lang === "en" ? "Real Estate"     : "Immobilier"      },
+    ];
+    return (
+      <div>
+        <PageHero
+          eyebrow={lang === "en" ? "Capital Solutions" : "Stratégies d'Investissement"}
+          title={lang === "en" ? "WHAT WE DO" : "CE QUE NOUS FAISONS"}
+          body={lang === "en"
+            ? "Prime Alpha Securities operates four integrated capital platforms, each with dedicated teams and independent mandates coordinated at the portfolio level."
+            : "Prime Alpha Securities opère quatre plateformes de capital intégrées, chacune avec des équipes dédiées et des mandats indépendants coordonnés au niveau du portefeuille global."}
+        />
+        <div style={{ maxWidth: 960, margin: "0 auto", padding: "64px max(16px,4vw)" }}>
+          <div className="rg-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+            {cards.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => navigate(key)}
+                style={{ ...T.card, textAlign: "left", cursor: "pointer", borderLeft: "3px solid var(--blue)", transition: "box-shadow 0.15s" }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = "var(--sh-md)"}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = "var(--sh)"}
+              >
+                <h3 style={{ ...T.hdg, fontSize: 20, marginBottom: 6 }}>{label}</h3>
+                <div style={{ color: "var(--blue)", fontSize: 13, fontWeight: 700 }}>
+                  {lang === "en" ? "Explore →" : "Explorer →"}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Private Credit delegates to its own component ─────────────────────────
+  if (sub === "Private Credit") return <PrivateCreditPublic />;
+
+  // ── PE / Commodities / Real Estate ────────────────────────────────────────
+  const strategy = STRATEGIES[sub];
+  const d = strategy ? (strategy[lang] || strategy.en) : null;
+
+  if (!d) return (
+    <div style={{ padding: "120px 40px", textAlign: "center", color: "var(--dim)" }}>
+      {lang === "en" ? "Strategy not found." : "Stratégie introuvable."}
+    </div>
+  );
+
+  return (
     <div>
-      <PageHero eyebrow={lang==="en"?"Capital Solutions":"Stratégies d'Investissement"} title={sub.toUpperCase()} body={d?.body}/>
-      <div style={{maxWidth:960,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
-        {d?.items.map(item=>(
-          <div key={item} style={{display:"flex",gap:16,padding:"14px 0",borderBottom:"1px solid var(--lg)"}}>
-            <div style={{width:8,height:8,background:"var(--blue)",borderRadius:"50%",flexShrink:0,marginTop:8}}/>
-            <span style={{color:"var(--body)",fontSize:15}}>{item}</span>
+      <PageHero eyebrow={d.eyebrow} title={sub.toUpperCase()} body={d.body} />
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: "64px max(16px,4vw)" }}>
+        {d.items.map((item, i) => (
+          <div key={i} style={{ display: "flex", gap: 16, padding: "16px 0", borderBottom: "1px solid var(--lg)" }}>
+            <div style={{ width: 8, height: 8, background: "var(--blue)", borderRadius: "50%", flexShrink: 0, marginTop: 8 }} />
+            <span style={{ color: "var(--body)", fontSize: 15, lineHeight: 1.75 }}>{item}</span>
           </div>
         ))}
+        <div style={{ marginTop: 40 }}>
+          <button style={T.btnP} onClick={() => navigate("Contact")}>
+            {lang === "en" ? "Discuss This Strategy" : "Discuter de cette Stratégie"}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  PRIVATE CREDIT PUBLIC (with DynamoDB-backed loan form)
-// ─────────────────────────────────────────────────────────────────────────────
 function PrivateCreditPublic(){
   const [form,sf]=useState({type:"business",loanType:"secured",name:"",email:"",phone:"",amount:"",purpose:"",availability:""});
   const [sub,ss]=useState(false);
@@ -1149,7 +1293,12 @@ function PrivateCreditPublic(){
       <PageHero eyebrow="Direct Lending" title="PRIVATE CREDIT" body="Bespoke credit solutions for businesses and individuals where speed, certainty, and structural flexibility are paramount."/>
       <div style={{maxWidth:960,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
         <div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18,marginBottom:56}}>
-          {[["Direct Lending","Senior secured loans to businesses with EBITDA of $3M–$50M."],["Unitranche","One-stop financing combining senior and subordinated debt in a single tranche."],["Secured Personal Credit","Asset-backed facilities against liquid and illiquid collateral."],["Unsecured Business Credit","Cash-flow-based lending for businesses with strong revenue visibility."]].map(([t,d])=>(
+          {[
+            ["Direct Lending",          "Senior secured loans to established businesses with predictable cash flows and identifiable collateral."],
+            ["Unitranche",              "One-stop financing that combines senior and subordinated debt into a single facility, simplifying the capital structure for the borrower."],
+            ["Secured Personal Credit", "Asset-backed facilities against liquid and illiquid collateral for high-net-worth individuals."],
+            ["Unsecured Business Credit","Cash-flow-based lending for businesses with strong and recurring revenue visibility."],
+          ].map(([t, d]) => (
             <div key={t} style={{...T.card,borderLeft:"3px solid var(--blue)"}}>
               <h3 style={{...T.hdg,fontSize:17,marginBottom:8}}>{t}</h3>
               <p style={{fontSize:13,color:"var(--dim)",lineHeight:1.75}}>{d}</p>
@@ -1157,8 +1306,10 @@ function PrivateCreditPublic(){
           ))}
         </div>
         <div style={T.card}>
-          <h2 style={{...T.hdg,fontSize:26,marginBottom:6}}>Loan Enquiry</h2>
-          <p style={{color:"var(--dim)",fontSize:13,marginBottom:28}}>Submit your enquiry and our credit team will contact you within 2 business days to schedule a call. Submitted directly to pas-credit-apps.</p>
+          <h2 style={{ ...T.hdg, fontSize: 26, marginBottom: 6 }}>Loan Inquiry</h2>
+          <p style={{ color: "var(--dim)", fontSize: 13, marginBottom: 28 }}>
+            Submit your inquiry and our credit team will contact you within two business days to schedule a call.
+          </p>
           {sub?(
             <SubmitSuccess email={form.email} message="Our credit team will contact you within 2 business days."/>
           ):(
@@ -1173,7 +1324,7 @@ function PrivateCreditPublic(){
               </div>
               <TA label="Purpose / Business Description" value={form.purpose} onChange={set("purpose")}/>
               <Inp label="Availability for Call" value={form.availability} onChange={set("availability")} placeholder="e.g. Weekdays 9am–12pm EST"/>
-              <button style={T.btnP} onClick={submit} disabled={saving}>{saving?"Submitting…":"Submit Enquiry"}</button>
+              <button style={T.btnP} onClick={submit} disabled={saving}>{saving?"Submitting…":"Submit Inquiry"}</button>
             </div>
           )}
         </div>
@@ -1208,15 +1359,12 @@ function FundTerms(){
         "Performance is calculated per fund. An 'eat what you kill' culture means every deal team is directly accountable for the returns they generate.",
         "Minimum investment levels and co-investment opportunities are available on a case-by-case basis. Contact us to discuss your allocation.",
       ],
-      roadTitle:"20-Year Growth Roadmap",
-      road:[
-        ["2024","Launch","$56K seed capital — peer lending & first PE deals. Track record begins."],
-        ["2025","Foundation","Multi-strategy fund, $167K AUM (+195% in 11 months). Team of 3. Local regulatory relationships established."],
-        ["2026","Scale","$1.92M AUM. Real Estate fundraise launch in U.S. Four active strategies."],
-        ["2027–28","Expand","Larger Private Credit tickets. Institutional LP outreach — DFIs, family offices. $8M AUM target."],
-        ["2030","Platform","$20M AUM. Pan-African platform across Senegal, Cameroon, and West Africa. Conservative case."],
-        ["2035","Institution","$100M+ AUM. Institutional LP base. Regional expansion into 3+ WAEMU/CEMAC markets. Fund II closed."],
-        ["2040–44","Legacy","$500M–$1B+ AUM. Succession plan executed. The institution outlives its founders."],
+      roadTitle: "Growth Roadmap",
+      road: [
+        ["2024", "Launch",      "Seed capital deployed across peer lending and first private equity deals. The track record begins."],
+        ["2025", "Foundation",  "Multi-strategy fund formalised. First institutional-quality track record established with zero outside capital."],
+        ["2026", "Scale",       "Four active strategies running simultaneously. Real Estate fundraise launched in the United States."],
+        ["2027 onward", "TBC",  "Milestones and targets for subsequent years are being formalised and will be published once confirmed."],
       ],
       cta:"Get In Touch",
     },
@@ -1239,15 +1387,12 @@ function FundTerms(){
         "Les commissions de performance sont calculées par fonds. La culture 'on mange ce qu'on chasse' signifie que chaque équipe est comptable des rendements générés.",
         "Les montants minimums d'investissement et les opportunités de co-investissement sont disponibles au cas par cas. Contactez-nous.",
       ],
-      roadTitle:"Feuille de Route sur 20 Ans",
-      road:[
-        ["2024","Lancement","56 K$ en capital de départ — prêts et premiers deals PE."],
-        ["2025","Fondation","Fonds multi-stratégies, 167 K$ d'AUM (+195% en 11 mois)."],
-        ["2026","Montée en Échelle","1,92 M$ AUM. Lancement levée Immobilier aux États-Unis."],
-        ["2027–28","Expansion","Plus grands tickets Crédit Privé. Approche LPs institutionnels. Objectif 8 M$ AUM."],
-        ["2030","Plateforme","20 M$ AUM. Plateforme panafricaine. Scénario conservateur."],
-        ["2035","Institution","100 M$+ AUM. Base LP institutionnelle. Expansion dans 3+ marchés WAEMU/CEMAC."],
-        ["2040–44","Héritage","500 M$–1 Md$+ AUM. Plan de succession exécuté. L'institution survit à ses fondateurs."],
+      roadTitle: "Feuille de Route",
+      road: [
+        ["2024", "Lancement",        "Capital de départ déployé en prêts et premiers deals de private equity. Le track record commence."],
+        ["2025", "Fondation",        "Fonds multi-stratégies formalisé. Premier track record de qualité institutionnelle établi sans capital extérieur."],
+        ["2026", "Montée en Échelle","Quatre stratégies actives simultanément. Lancement de la levée immobilière aux États-Unis."],
+        ["2027 et au-delà", "TBC",   "Les jalons et objectifs des années suivantes sont en cours de formalisation et seront publiés une fois confirmés."],
       ],
       cta:"Nous Contacter",
     },
@@ -1308,37 +1453,311 @@ function FundTerms(){
 // ─────────────────────────────────────────────────────────────────────────────
 //  CAREERS
 // ─────────────────────────────────────────────────────────────────────────────
-function Careers(){
-  const roles=[{t:"Associate, Private Equity",d:"Investments",l:"New York"},{t:"Credit Analyst, Direct Lending",d:"Private Credit",l:"London"},{t:"Quantitative Researcher",d:"Risk",l:"New York / Remote"},{t:"Real Estate Associate",d:"Real Assets",l:"Singapore"},{t:"Fund Accounting Manager",d:"Finance",l:"New York"}];
-  return(
+// ─────────────────────────────────────────────────────────────────────────────
+//  CAREERS
+// ─────────────────────────────────────────────────────────────────────────────
+function Careers() {
+  const [lang] = useLang();
+  const [selected, setSelected] = useState(null);
+
+  // ── Values / culture points ───────────────────────────────────────────────
+  const VALUES = {
+    en: [
+      { icon: "◆", title: "Eat What You Kill",        body: "Every deal team is directly accountable for the returns they generate. There are no passengers at Prime Alpha." },
+      { icon: "◆", title: "First-Mover Mindset",      body: "We move into markets and structures others find too early, too informal or too complex. That is precisely where the opportunity lives." },
+      { icon: "◆", title: "Intellectual Honesty",     body: "We write dissenting positions into IC minutes. Disagreement on the record is a feature, not a flaw." },
+      { icon: "◆", title: "Fiduciary Primacy",        body: "Investor interests come first. Conflicts are disclosed within 24 hours. There is no grey zone on this." },
+    ],
+    fr: [
+      { icon: "◆", title: "On Mange Ce Qu'on Chasse", body: "Chaque équipe est directement responsable des rendements qu'elle génère. Il n'y a pas de passagers chez Prime Alpha." },
+      { icon: "◆", title: "Esprit de Premier Arrivant", body: "Nous entrons sur des marchés et des structures que d'autres trouvent trop tôt, trop informels ou trop complexes. C'est précisément là que se trouve l'opportunité." },
+      { icon: "◆", title: "Honnêteté Intellectuelle", body: "Les positions dissidentes sont consignées dans les procès-verbaux du comité d'investissement. Le désaccord officiel est une caractéristique, pas un défaut." },
+      { icon: "◆", title: "Primauté Fiduciaire",     body: "Les intérêts des investisseurs passent en premier. Les conflits sont divulgués dans les 24 heures. Il n'y a pas de zone grise sur ce point." },
+    ],
+  };
+
+  // ── Open roles ────────────────────────────────────────────────────────────
+  const ROLES = {
+    en: [
+      {
+        id: "pe-associate",
+        title: "Associate, Private Equity",
+        dept: "Investments",
+        location: "Douala / Remote",
+        type: "Full-time",
+        description: "You will work directly with the CIO on sourcing, structuring and monitoring equity investments across CEMAC and West African markets. The role requires the ability to move from financial modelling to on-the-ground relationship management without losing rigour at either end.",
+        requirements: [
+          "Demonstrated interest in African private markets, ideally with regional exposure.",
+          "Ability to build financial models from scratch and defend assumptions under pressure.",
+          "Strong written and verbal communication in English and French.",
+          "Comfort operating in environments with limited data and high ambiguity.",
+        ],
+      },
+      {
+        id: "credit-analyst",
+        title: "Credit Analyst, Direct Lending",
+        dept: "Private Credit",
+        location: "Douala / Paris",
+        type: "Full-time",
+        description: "You will evaluate credit applications, structure loan facilities and monitor portfolio positions across the private credit book. The role sits at the intersection of underwriting discipline and relationship-driven deal flow.",
+        requirements: [
+          "Understanding of credit underwriting, cash flow analysis and collateral assessment.",
+          "Experience or strong academic grounding in structured finance or direct lending.",
+          "Attention to detail and comfort with legal documentation.",
+          "Bilingual English and French strongly preferred.",
+        ],
+      },
+      {
+        id: "commodities-trader",
+        title: "Commodities Trader",
+        dept: "Commodities",
+        location: "Douala",
+        type: "Full-time",
+        description: "You will manage physical commodity positions across our four trading verticals: textile and cotton, luxury goods, agricultural commodities, and livestock. The role requires hands-on supply chain engagement, not just screen-based trading.",
+        requirements: [
+          "Practical knowledge of physical commodity markets in West or Central Africa.",
+          "Established sourcing or trading relationships in at least one of our verticals.",
+          "Operational mindset with the ability to manage logistics and counterparty risk simultaneously.",
+          "Willingness to travel within the CEMAC and West African corridor.",
+        ],
+      },
+      {
+        id: "re-analyst",
+        title: "Real Estate Analyst",
+        dept: "Real Assets",
+        location: "USA / Remote",
+        type: "Full-time",
+        description: "You will support the build-out of the U.S. real estate strategy, covering deal sourcing, property underwriting and portfolio monitoring. The strategy is early-stage, which means significant exposure and significant responsibility.",
+        requirements: [
+          "Understanding of U.S. residential and multifamily real estate markets.",
+          "Ability to underwrite fix-and-flip, buy-and-hold and distressed acquisitions.",
+          "Comfort with early-stage environments where processes are still being built.",
+          "Strong quantitative skills and attention to detail.",
+        ],
+      },
+      {
+        id: "tech-associate",
+        title: "Technology Associate",
+        dept: "Engineering",
+        location: "Remote",
+        type: "Full-time",
+        description: "You will work with the CTO to build and maintain the technology infrastructure that supports all four strategies. This includes data pipelines, internal tooling, the investor platform and cloud architecture on AWS.",
+        requirements: [
+          "Proficiency in Python and JavaScript, with exposure to React and Node.js.",
+          "Experience with AWS services, ideally including DynamoDB, SES and EC2.",
+          "Systems thinking and the ability to design for scale from the start.",
+          "Comfort working independently and shipping without heavy process overhead.",
+        ],
+      },
+    ],
+    fr: [
+      {
+        id: "pe-associate",
+        title: "Associé, Private Equity",
+        dept: "Investissements",
+        location: "Douala / Télétravail",
+        type: "Temps plein",
+        description: "Vous travaillerez directement avec le DII sur le sourcing, la structuration et le suivi des investissements en equity dans les marchés CEMAC et Afrique de l'Ouest. Le rôle exige de pouvoir passer de la modélisation financière à la gestion relationnelle terrain sans perdre en rigueur.",
+        requirements: [
+          "Intérêt démontré pour les marchés privés africains, idéalement avec une exposition régionale.",
+          "Capacité à construire des modèles financiers de zéro et à défendre les hypothèses sous pression.",
+          "Excellente communication écrite et orale en français et en anglais.",
+          "Aisance dans des environnements à données limitées et forte ambiguïté.",
+        ],
+      },
+      {
+        id: "credit-analyst",
+        title: "Analyste Crédit, Prêt Direct",
+        dept: "Crédit Privé",
+        location: "Douala / Paris",
+        type: "Temps plein",
+        description: "Vous évaluerez les dossiers de crédit, structurerez les facilités de prêt et suivrez les positions du portefeuille de crédit privé. Le rôle est à l'intersection de la rigueur du crédit et du deal flow relationnel.",
+        requirements: [
+          "Compréhension de la notation de crédit, de l'analyse des flux de trésorerie et de l'évaluation des garanties.",
+          "Expérience ou solide formation académique en finance structurée ou prêt direct.",
+          "Souci du détail et aisance avec la documentation juridique.",
+          "Bilingue français et anglais fortement souhaité.",
+        ],
+      },
+      {
+        id: "commodities-trader",
+        title: "Trader Matières Premières",
+        dept: "Matières Premières",
+        location: "Douala",
+        type: "Temps plein",
+        description: "Vous gérerez des positions en matières premières physiques sur nos quatre verticaux : textile et coton, produits de luxe, matières premières agricoles et élevage. Le rôle exige un engagement opérationnel direct sur la chaîne d'approvisionnement.",
+        requirements: [
+          "Connaissance pratique des marchés physiques de matières premières en Afrique de l'Ouest ou Centrale.",
+          "Relations établies de sourcing ou de négoce dans au moins l'un de nos verticaux.",
+          "Sens opérationnel avec capacité à gérer logistique et risque de contrepartie simultanément.",
+          "Disponibilité pour des déplacements dans le corridor CEMAC et Afrique de l'Ouest.",
+        ],
+      },
+      {
+        id: "re-analyst",
+        title: "Analyste Immobilier",
+        dept: "Actifs Réels",
+        location: "USA / Télétravail",
+        type: "Temps plein",
+        description: "Vous soutiendrez le développement de la stratégie immobilière américaine, couvrant le sourcing, l'évaluation des biens et le suivi du portefeuille. La stratégie est en phase initiale, ce qui implique une forte exposition et une responsabilité significative.",
+        requirements: [
+          "Compréhension des marchés immobiliers résidentiels et multifamiliaux américains.",
+          "Capacité à évaluer des acquisitions de réhabilitation-revente, buy-and-hold et situations de détresse.",
+          "Aisance dans les environnements early-stage où les processus sont encore en construction.",
+          "Solides compétences quantitatives et souci du détail.",
+        ],
+      },
+      {
+        id: "tech-associate",
+        title: "Associé Technologie",
+        dept: "Ingénierie",
+        location: "Télétravail",
+        type: "Temps plein",
+        description: "Vous travaillerez avec le DTC pour construire et maintenir l'infrastructure technologique qui soutient les quatre stratégies : pipelines de données, outils internes, plateforme investisseurs et architecture cloud AWS.",
+        requirements: [
+          "Maîtrise de Python et JavaScript, avec exposition à React et Node.js.",
+          "Expérience avec les services AWS, idéalement DynamoDB, SES et EC2.",
+          "Pensée systémique et capacité à concevoir pour la scalabilité dès le départ.",
+          "Autonomie et capacité à livrer sans processus lourd.",
+        ],
+      },
+    ],
+  };
+
+  const roles = ROLES[lang] || ROLES.en;
+  const values = VALUES[lang] || VALUES.en;
+  const activeRole = selected ? roles.find(r => r.id === selected) : null;
+
+  return (
     <div>
-      <PageHero eyebrow="Join Us" title="CAREERS" body="We hire exceptional thinkers who combine intellectual rigour with the flexibility to structure solutions others cannot."/>
-      <div style={{maxWidth:960,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
-        {roles.map(r=>(
-          <div key={r.t} style={{...T.card,marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <div>
-              <h3 style={{...T.hdg,fontSize:17,marginBottom:6}}>{r.t}</h3>
-              <div style={{display:"flex",gap:10}}><span style={T.tag()}>{r.d}</span><span style={{fontSize:13,color:"var(--dim)"}}>{r.l}</span></div>
+      <PageHero
+        eyebrow={lang === "en" ? "Join Us" : "Nous Rejoindre"}
+        title={lang === "en" ? "CAREERS" : "CARRIÈRES"}
+        body={lang === "en"
+          ? "We are a small team building something that did not exist before. If you want to work on hard problems in markets that the rest of the world has underestimated, we should talk."
+          : "Nous sommes une petite équipe qui construit quelque chose qui n'existait pas avant. Si vous voulez travailler sur des problèmes difficiles dans des marchés que le reste du monde a sous-estimés, nous devrions nous parler."}
+      />
+
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: "64px max(16px,4vw)" }}>
+
+        {/* Culture values */}
+        <h2 style={{ ...T.hdg, fontSize: 22, marginBottom: 8 }}>
+          {lang === "en" ? "How We Work" : "Comment Nous Travaillons"}
+        </h2>
+        <p style={{ color: "var(--dim)", fontSize: 14, marginBottom: 32, lineHeight: 1.75 }}>
+          {lang === "en"
+            ? "These are not aspirational values written for a website. They are the operating principles we hold each other to every day."
+            : "Ce ne sont pas des valeurs aspirationnelles écrites pour un site web. Ce sont les principes opérationnels que nous nous imposons mutuellement chaque jour."}
+        </p>
+        <div className="rg-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 56 }}>
+          {values.map(v => (
+            <div key={v.title} style={{ ...T.card, borderTop: "3px solid var(--blue)" }}>
+              <h3 style={{ ...T.hdg, fontSize: 15, marginBottom: 8 }}>{v.title}</h3>
+              <p style={{ color: "var(--dim)", fontSize: 13, lineHeight: 1.75 }}>{v.body}</p>
             </div>
-            <button style={T.btnO} onClick={()=>alert("Send CV to aurel.botouli@primealphasecurities.com")}>Apply</button>
+          ))}
+        </div>
+
+        {/* Open roles */}
+        <h2 style={{ ...T.hdg, fontSize: 22, marginBottom: 8 }}>
+          {lang === "en" ? "Open Roles" : "Postes Ouverts"}
+        </h2>
+        <p style={{ color: "var(--dim)", fontSize: 14, marginBottom: 32, lineHeight: 1.75 }}>
+          {lang === "en"
+            ? "All roles are open until filled. We hire on a rolling basis and move quickly when we find the right person."
+            : "Tous les postes sont ouverts jusqu'à pourvus. Nous recrutons en continu et agissons rapidement lorsque nous trouvons la bonne personne."}
+        </p>
+
+        {roles.map(role => (
+          <div key={role.id} style={{ marginBottom: 12 }}>
+            {/* Role header row */}
+            <div
+              style={{ ...T.card, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center",
+                borderLeft: selected === role.id ? "3px solid var(--blue)" : "3px solid transparent",
+                transition: "border-color 0.15s, box-shadow 0.15s" }}
+              onClick={() => setSelected(selected === role.id ? null : role.id)}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = "var(--sh-md)"}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = "var(--sh)"}
+            >
+              <div>
+                <h3 style={{ ...T.hdg, fontSize: 17, marginBottom: 6 }}>{role.title}</h3>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <span style={T.tag()}>{role.dept}</span>
+                  <span style={{ fontSize: 13, color: "var(--dim)" }}>{role.location}</span>
+                  <span style={{ fontSize: 13, color: "var(--dim)" }}>{role.type}</span>
+                </div>
+              </div>
+              <div style={{ color: "var(--blue)", fontWeight: 700, fontSize: 20, flexShrink: 0, marginLeft: 16 }}>
+                {selected === role.id ? "−" : "+"}
+              </div>
+            </div>
+
+            {/* Expanded role detail */}
+            {selected === role.id && (
+              <div style={{ ...T.card, marginTop: 2, borderTop: "none", background: "var(--ow)" }}>
+                <p style={{ color: "var(--body)", fontSize: 14, lineHeight: 1.85, marginBottom: 24 }}>
+                  {role.description}
+                </p>
+                <h4 style={{ ...T.hdg, fontSize: 13, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  {lang === "en" ? "What We're Looking For" : "Ce Que Nous Recherchons"}
+                </h4>
+                {role.requirements.map((req, i) => (
+                  <div key={i} style={{ display: "flex", gap: 12, marginBottom: 10 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--blue)", flexShrink: 0, marginTop: 8 }} />
+                    <p style={{ color: "var(--dim)", fontSize: 13, lineHeight: 1.75, margin: 0 }}>{req}</p>
+                  </div>
+                ))}
+                <div style={{ marginTop: 24 }}>
+                  <button
+                    style={T.btnP}
+                    onClick={() => {
+                      const sub = encodeURIComponent(`Application: ${role.title}`);
+                      window.location.href = `mailto:aurel.botouli@primealphasecurities.com?subject=${sub}`;
+                    }}
+                  >
+                    {lang === "en" ? "Apply for This Role" : "Postuler à ce Poste"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
+
+        {/* Speculative applications */}
+        <div style={{ ...T.card, marginTop: 32, borderTop: "3px solid var(--blue-light)", textAlign: "center" }}>
+          <h3 style={{ ...T.hdg, fontSize: 18, marginBottom: 8 }}>
+            {lang === "en" ? "Don't See Your Role?" : "Vous ne voyez pas votre poste ?"}
+          </h3>
+          <p style={{ color: "var(--dim)", fontSize: 13, lineHeight: 1.75, maxWidth: 520, margin: "0 auto 20px" }}>
+            {lang === "en"
+              ? "We are always open to exceptional people, even when we do not have a specific opening. Send a short note about yourself and what you are looking to build."
+              : "Nous sommes toujours ouverts aux personnes exceptionnelles, même lorsque nous n'avons pas d'ouverture spécifique. Envoyez une courte note sur vous-même et ce que vous souhaitez construire."}
+          </p>
+          <button
+            style={T.btnO}
+            onClick={() => {
+              window.location.href = "mailto:aurel.botouli@primealphasecurities.com?subject=Speculative%20Application";
+            }}
+          >
+            {lang === "en" ? "Send a Speculative Application" : "Envoyer une Candidature Spontanée"}
+          </button>
+        </div>
+
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  RESEARCH
-// ─────────────────────────────────────────────────────────────────────────────
+
 function Research(){
+  const [lang]=useLang();
   const [articles,sa]=useState([]);
   const [loading,sl]=useState(true);
   const [active,sact]=useState(null);
   useEffect(()=>{api.getAll("articles").then(r=>{sa([...r].sort((a,b)=>b.date.localeCompare(a.date)));sl(false);});},[]);
   return(
     <div>
-      <PageHero eyebrow="Perspectives" title="RESEARCH & INSIGHTS"/>
+      <PageHero eyebrow={lang==="en"?"Perspectives":"Perspectives"} title={lang==="en"?"RESEARCH & INSIGHTS":"RECHERCHE & ANALYSES"}/>
       <div style={{maxWidth:1100,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
         {loading?<Spinner/>:(
           <div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
@@ -1376,23 +1795,33 @@ function Research(){
 //  CONTACT
 // ─────────────────────────────────────────────────────────────────────────────
 function Contact(){
+  const [lang]=useLang();
   const [form,sf]=useState({name:"",email:"",org:"",subject:"",message:""});
   const [sent,ss]=useState(false);
   const [saving,sv]=useState(false);
   const set=k=>e=>sf(p=>({...p,[k]:e.target.value}));
   const submit=async()=>{
-    if(!form.name||!form.email||!form.message){alert("Fill required fields.");return;}
+    if(!form.name||!form.email||!form.message){alert(lang==="en"?"Fill required fields.":"Veuillez remplir les champs obligatoires.");return;}
     sv(true);
-    await api.put("enquiries",{enquiryId:`enq_${uid()}`,type:"contact",...form,submittedAt:now()});
-    await notify.enquiry(form);
+    await api.put("enquiries",{inquiryId:`enq_${uid()}`,type:"contact",...form,submittedAt:now()});
+    await notify.inquiry(form);
     sv(false);ss(true);
   };
+  const subjects=lang==="en"
+    ?[{value:"",label:"Select…"},{value:"IR",label:"Investor Relations"},{value:"media",label:"Media"},{value:"credit",label:"Credit Inquiry"},{value:"careers",label:"Careers"},{value:"other",label:"Other"}]
+    :[{value:"",label:"Sélectionner…"},{value:"IR",label:"Relations Investisseurs"},{value:"media",label:"Médias"},{value:"credit",label:"Demande de Crédit"},{value:"careers",label:"Carrières"},{value:"other",label:"Autre"}];
   return(
     <div>
-      <PageHero eyebrow="Get In Touch" title="CONTACT"/>
+      <PageHero eyebrow={lang==="en"?"Get In Touch":"Nous Contacter"} title={lang==="en"?"CONTACT":"CONTACT"}/>
       <div style={{maxWidth:1100,margin:"0 auto",padding:"64px max(16px,4vw)",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:40}}>
         <div>
-          {[["Compliance","compliance@primealphasecurities.com"],["Investor Relations","ir@primealphasecurities.com"],["Website","www.primealphasecurities.com"],["Markets","CEMAC · West Africa · USA"],["Founded","June 2024"]].map(([k,v])=>(
+          {[
+            [lang==="en"?"Compliance":"Conformité","compliance@primealphasecurities.com"],
+            [lang==="en"?"Investor Relations":"Relations Investisseurs","ir@primealphasecurities.com"],
+            [lang==="en"?"Website":"Site Web","www.primealphasecurities.com"],
+            [lang==="en"?"Markets":"Marchés","CEMAC · West Africa · USA"],
+            [lang==="en"?"Founded":"Fondé","June 2024"],
+          ].map(([k,v])=>(
             <div key={k} style={{marginBottom:24}}>
               <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:"var(--blue)",marginBottom:6}}>{k}</div>
               <div style={{color:"var(--body)",fontSize:14,lineHeight:1.75,whiteSpace:"pre-line"}}>{v}</div>
@@ -1401,18 +1830,18 @@ function Contact(){
         </div>
         <div style={T.card}>
           {sent?(
-            <SubmitSuccess message="We'll respond within 2 business days."/>
+            <SubmitSuccess message={lang==="en"?"We'll respond within 2 business days.":"Nous vous répondrons dans les 2 jours ouvrables."}/>
           ):(
             <>
-              <h2 style={{...T.hdg,fontSize:24,marginBottom:24}}>Send an Enquiry</h2>
+              <h2 style={{...T.hdg,fontSize:24,marginBottom:24}}>{lang==="en"?"Send an Inquiry":"Envoyer une Demande"}</h2>
               <div className="form-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
-                <Inp label="Full Name *" value={form.name} onChange={set("name")}/>
-                <div style={{paddingLeft:16}}><Inp label="Email *" type="email" value={form.email} onChange={set("email")}/></div>
+                <Inp label={lang==="en"?"Full Name *":"Nom Complet *"} value={form.name} onChange={set("name")}/>
+                <div style={{paddingLeft:16}}><Inp label={lang==="en"?"Email *":"Email *"} type="email" value={form.email} onChange={set("email")}/></div>
               </div>
-              <Inp label="Organisation" value={form.org} onChange={set("org")}/>
-              <Sel label="Subject" value={form.subject} onChange={set("subject")} options={[{value:"",label:"Select…"},{value:"IR",label:"Investor Relations"},{value:"media",label:"Media"},{value:"credit",label:"Credit Enquiry"},{value:"careers",label:"Careers"},{value:"other",label:"Other"}]}/>
-              <TA label="Message *" value={form.message} onChange={set("message")}/>
-              <button style={T.btnP} onClick={submit} disabled={saving}>{saving?"Sending…":"Send Message"}</button>
+              <Inp label={lang==="en"?"Organisation":"Organisation"} value={form.org} onChange={set("org")}/>
+              <Sel label={lang==="en"?"Subject":"Sujet"} value={form.subject} onChange={set("subject")} options={subjects}/>
+              <TA label={lang==="en"?"Message *":"Message *"} value={form.message} onChange={set("message")}/>
+              <button style={T.btnP} onClick={submit} disabled={saving}>{saving?(lang==="en"?"Sending…":"Envoi…"):(lang==="en"?"Send Message":"Envoyer")}</button>
             </>
           )}
         </div>
@@ -1425,17 +1854,28 @@ function Contact(){
 //  LEGAL
 // ─────────────────────────────────────────────────────────────────────────────
 function Legal({type}){
+  const [lang]=useLang();
   const T2={
     Privacy:"Prime Alpha Securities LLC and its affiliates ('Prime Alpha', 'we', 'our') collect information you provide directly and information collected automatically. We do not sell personal data. Data is retained only as long as necessary to fulfill the purposes for which it was collected or as required by applicable law. Contact privacy@primealphasecurities.com to access, correct, or delete your data.",
     Terms:"These Terms of Use govern your access to primealphasecurities.com and associated portals. The information herein is for informational purposes only and does not constitute an offer or solicitation to buy or sell any security. Investment involves risk, including possible loss of principal.",
     Notices:"Prime Alpha Securities LLC is registered as an investment adviser with the U.S. Securities and Exchange Commission. Registration does not imply a certain level of skill or training. Securities may not be offered in jurisdictions where such offering would be unlawful.",
     Disclosures:"IMPORTANT: Alternative investments involve high risk, are speculative and illiquid, and are not suitable for all investors. These investments are offered only to qualified investors. Performance data shown may not be representative of all client outcomes. Net returns are after management fees and carried interest.",
   };
+  const T2fr={
+    Privacy:"Prime Alpha Securities LLC et ses affiliés collectent les informations que vous fournissez directement. Nous ne vendons pas de données personnelles. Contactez privacy@primealphasecurities.com pour accéder à vos données, les corriger ou les supprimer.",
+    Terms:"Ces Conditions d'Utilisation régissent votre accès à primealphasecurities.com et aux portails associés. Les informations ici sont à titre informatif uniquement et ne constituent pas une offre ou sollicitation d'achat ou de vente de valeurs mobilières.",
+    Notices:"Prime Alpha Securities LLC est enregistrée en tant que conseiller en investissement. L'enregistrement n'implique pas un certain niveau de compétence ou de formation. Les valeurs mobilières peuvent ne pas être offertes dans les juridictions où une telle offre serait illégale.",
+    Disclosures:"IMPORTANT : Les investissements alternatifs comportent des risques élevés, sont spéculatifs et illiquides, et ne sont pas adaptés à tous les investisseurs. Ces investissements sont offerts uniquement aux investisseurs qualifiés.",
+  };
+  const titles={Privacy:"Privacy Policy",Terms:"Terms of Use",Notices:"Legal Notices",Disclosures:"Disclosures"};
+  const titlesFr={Privacy:"Politique de Confidentialité",Terms:"Conditions d'Utilisation",Notices:"Mentions Légales",Disclosures:"Informations Réglementaires"};
+  const content=lang==="en"?(T2[type]||""):(T2fr[type]||T2[type]||"");
+  const title=lang==="en"?(titles[type]||type).toUpperCase():(titlesFr[type]||type).toUpperCase();
   return(
     <div>
-      <PageHero title={type.toUpperCase()}/>
+      <PageHero title={title}/>
       <div style={{maxWidth:800,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
-        <div style={T.card}><p style={{color:"var(--body)",lineHeight:1.9}}>{T2[type]}</p></div>
+        <div style={T.card}><p style={{color:"var(--body)",lineHeight:1.9}}>{content}</p></div>
       </div>
     </div>
   );
@@ -2425,7 +2865,7 @@ function WEmail({clients,workers,user,showToast}){
     const sentBy=typeof user!=="undefined"?user?.name:"worker";
     // Save log to DynamoDB and send real email via SES
     await Promise.all([
-      api.put("enquiries",{enquiryId:`em_${uid()}`,to:finalTo,subject,body,sentAt:now(),sentBy}),
+      api.put("enquiries",{inquiryId:`em_${uid()}`,to:finalTo,subject,body,sentAt:now(),sentBy}),
       notify.workerEmail({to:finalTo,subject,body,sentBy}),
     ]);
     ssn(false);sse(true);showToast(`Email sent to ${finalTo}`);
@@ -2516,7 +2956,7 @@ function WWorkers({workers,addWorker,updateWorker,removeWorker,showToast}){
       <div style={{...T.card,marginTop:32,borderLeft:"3px solid var(--blue)"}}>
         <h3 style={{...T.hdg,fontSize:15,marginBottom:12}}>Notification Reference</h3>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-          {[["📧 Calendar Email","Worker receives an email when assigned to a calendar event."],["📧 Compose (Email tab)","Real email sent via SES, not just a DynamoDB log."],["📧 Contact Form","Enquiries trigger an email alert to your ops inbox."],["📧 Credit Form","New credit applications trigger an alert to your ops inbox."]].map(([t,d])=>(
+          {[["📧 Calendar Email","Worker receives an email when assigned to a calendar event."],["📧 Compose (Email tab)","Real email sent via SES, not just a DynamoDB log."],["📧 Contact Form","Inquiries trigger an email alert to your ops inbox."],["📧 Credit Form","New credit applications trigger an alert to your ops inbox."]].map(([t,d])=>(
             <div key={t} style={{background:"var(--ow)",borderRadius:6,padding:"12px 14px"}}>
               <div style={{fontWeight:700,fontSize:13,marginBottom:4}}>{t}</div>
               <div style={{fontSize:12,color:"var(--dim)",lineHeight:1.6}}>{d}</div>
