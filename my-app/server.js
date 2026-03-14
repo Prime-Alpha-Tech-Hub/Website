@@ -35,7 +35,8 @@ const PORT_HTTP    = Number(process.env.PORT_HTTP)  || 80;
 const PORT_HTTPS   = Number(process.env.PORT_HTTPS) || 443;
 const REGION       = process.env.AWS_REGION         || 'eu-west-2';
 const SES_FROM     = process.env.SES_FROM_EMAIL     || 'aurel.botouli@primealphasecurities.com';   // must be SES-verified
-const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL       || 'aurel.botouli@primealphasecurities.com';
+const SUPPORT_EMAIL = process.env.NOTIFY_EMAIL       || 'support@primealphasecurities.com';
+const IR_EMAIL      = process.env.NOTIFY_EMAIL       || 'ir@primealphasecurities.com'; // inbox for internal notifications (contact/credit form submissions, calendar assignments, etc.) — can be same as SUPPORT_EMAIL
 const DIST         = path.join(__dirname, 'dist');
 const CERTS        = path.join(__dirname, 'certs');
 
@@ -191,7 +192,7 @@ async function notifyEnquiry(data) {
     ${ctaButton(`Reply to ${data.name}`, `mailto:${data.email}?subject=Re: ${encodeURIComponent(data.subject||'Your enquiry — Prime Alpha Securities')}`)}
   `);
   const text = `NEW CONTACT ENQUIRY — Prime Alpha Securities\n\nName: ${data.name}\nEmail: ${data.email}\nOrg: ${data.org||'—'}\nSubject: ${data.subject||'—'}\n\n${data.message}`;
-  await sendEmail({ to: NOTIFY_EMAIL, subject: `[PAS] Enquiry from ${data.name}${data.org?' ('+data.org+')':''}`, html, text });
+  await sendEmail({ to: SUPPORT_EMAIL, subject: `[PAS] Enquiry from ${data.name}${data.org?' ('+data.org+')':''}`, html, text });
 }
 
 // POST /api/notify/credit  — private credit application
@@ -215,7 +216,7 @@ async function notifyCredit(data) {
     ${ctaButton('Contact Applicant', `mailto:${data.email}?subject=Re: Your credit application — Prime Alpha Securities`)}
   `);
   const text = `NEW CREDIT APPLICATION — Prime Alpha Securities\n\nApp ID: ${data.appId||'—'}\nApplicant: ${data.name} (${data.email})\nPhone: ${data.phone||'—'}\nType: ${data.type} / ${data.loanType}\nAmount: ${fmtAmount}\nAvailability: ${data.availability||'—'}\n\nPurpose:\n${data.purpose||'—'}`;
-  await sendEmail({ to: NOTIFY_EMAIL, subject: `[PAS Credit] ${fmtAmount} application — ${data.name}`, html, text });
+  await sendEmail({ to: IR_EMAIL, subject: `[PAS Credit] ${fmtAmount} application — ${data.name}`, html, text });
 }
 
 // POST /api/notify/calendar  — new event, email each assigned worker
