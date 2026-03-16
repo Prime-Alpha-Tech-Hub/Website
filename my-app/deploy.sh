@@ -121,7 +121,7 @@ StandardError=append:${APP_DIR}/server.log
 Environment=NODE_ENV=production
 Environment=PORT_HTTP=80
 Environment=PORT_HTTPS=443
-Environment=AWS_REGION=us-east-1
+Environment=AWS_REGION=eu-west-2
 Environment=SES_FROM_EMAIL=noreply@primealphasecurities.com
 Environment=NOTIFY_EMAIL=aurel.botouli@primealphasecurities.com
 

@@ -43,7 +43,6 @@ const useLang = () => useContext(LangCtx);
 const ROUTES = {
   "/":                 "home",
   "/who-we-are":       "Overview",
-  "/our-story":        "Our Story",
   "/the-team":         "The Team",
   "/culture":          "Culture",
   "/leadership":       "Leadership",
@@ -1762,8 +1761,8 @@ function Contact(){
     sv(false);ss(true);
   };
   const subjects=lang==="en"
-    ?[{value:"",label:"Select…"},{value:"IR",label:"Investor Relations"},{value:"media",label:"Media"},{value:"credit",label:"Credit Inquiry"},{value:"careers",label:"Careers"},{value:"other",label:"Other"}]
-    :[{value:"",label:"Sélectionner…"},{value:"IR",label:"Relations Investisseurs"},{value:"media",label:"Médias"},{value:"credit",label:"Demande de Crédit"},{value:"careers",label:"Carrières"},{value:"other",label:"Autre"}];
+    ?[{value:"",label:"Select…"},{value:"IR",label:"Investor Relations"},{value:"media",label:"Media"},{value:"credit",label:"Credit Inquiry"},{value:"strategy",label:"Discuss Strategy"},{value:"careers",label:"Careers"},{value:"other",label:"Other"}]
+    :[{value:"",label:"Sélectionner…"},{value:"IR",label:"Relations Investisseurs"},{value:"media",label:"Médias"},{value:"credit",label:"Demande de Crédit"},{value:"strategy",label:"Discuter de la Stratégie"},{value:"careers",label:"Carrières"},{value:"other",label:"Autre"}];
   return(
     <div>
       <PageHero eyebrow={lang==="en"?"Get In Touch":"Nous Contacter"} title={lang==="en"?"CONTACT":"CONTACT"}/>
