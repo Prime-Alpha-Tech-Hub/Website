@@ -8,17 +8,9 @@
 //          /*             → Vite dist/ (React SPA)
 //
 //  EMAIL SETUP (Resend — free tier, 3 000 emails/month):
-//    1. Sign up at resend.com
-//    2. Add domain: Settings → Domains → Add → primealphasecurities.com
-//       Add the DNS TXT record they show you (takes ~5 min to verify)
-//    3. Create API key: API Keys → Create API Key
-//    4. Add to systemd service (deploy.sh sets this automatically):
-//         Environment=RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
-//
-//  ENV VARS:
-//    RESEND_API_KEY  — Resend API key (required for email delivery)
-//    SUPPORT_EMAIL   — receives contact form submissions  (default below)
-//    IR_EMAIL        — receives credit applications       (default below)
+//    RESEND_API_KEY  — from resend.com → API Keys
+//    SUPPORT_EMAIL   — receives contact form submissions
+//    IR_EMAIL        — receives credit applications
 //    AWS_REGION      — DynamoDB region (default: eu-west-2)
 // ═══════════════════════════════════════════════════════════════════════════
 'use strict';
@@ -34,17 +26,17 @@ const {
 const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const PORT_HTTP    = Number(process.env.PORT_HTTP)  || 80;
-const REGION        = process.env.AWS_REGION    || 'eu-west-2';
-const RESEND_KEY    = process.env.RESEND_API_KEY || '';
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL  || 'support@primealphasecurities.com';
-const IR_EMAIL      = process.env.IR_EMAIL       || 'ir@primealphasecurities.com';
+const PORT_HTTP     = Number(process.env.PORT_HTTP) || 80;
+const REGION        = process.env.AWS_REGION        || 'eu-west-2';
+const RESEND_KEY    = process.env.RESEND_API_KEY    || 're_Lqr36fGo_8Ev76CnuytPPVaXdXWRY6Z6W';
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL     || 'support@primealphasecurities.com';
+const IR_EMAIL      = process.env.IR_EMAIL          || 'ir@primealphasecurities.com';
 const FROM_EMAIL    = 'aurel.botouli@primealphasecurities.com';
 const DIST          = path.join(__dirname, 'dist');
+const DIST         = path.join(__dirname, 'dist');
 
-// ── AWS DynamoDB client (IAM role via EC2 IMDS — no keys needed) ──────────────
+// ── AWS clients — all use EC2 IAM role automatically ─────────────────────────
 const ddb = new DynamoDBClient({ region: REGION });
-
 
 // ── Primary key map ───────────────────────────────────────────────────────────
 const PK = {
@@ -92,26 +84,15 @@ function jsonRes(res, status, data) {
   res.end(body);
 }
 
-// ── Resend: send email via Resend API (resend.com — free tier 3K/month) ─────────
-// No packages needed — uses Node built-in fetch (Node 18+).
-// If RESEND_API_KEY is not set, the email is skipped but the DynamoDB record
-// is still saved, so no data is ever lost.
+// ── Resend: send email (resend.com — free tier 3K/month, no packages needed) ──
 async function sendEmail({ to, subject, html, text }) {
   const toList = (Array.isArray(to) ? to : [to]).filter(Boolean);
   if (!toList.length) return;
 
   if (!RESEND_KEY) {
-    console.warn(`[EMAIL] RESEND_API_KEY not set — skipping email "${subject}". Record saved to DynamoDB.`);
+    console.warn(`[EMAIL] RESEND_API_KEY not set — skipping "${subject}"`);
     return;
   }
-
-  const payload = {
-    from:    '${FROM_EMAIL}', // Verified sender email in Resend
-    to:      toList,
-    subject: subject,
-    html:    html,
-    text:    text,
-  };
 
   try {
     const res = await fetch('https://api.resend.com/emails', {
@@ -120,16 +101,20 @@ async function sendEmail({ to, subject, html, text }) {
         'Authorization': `Bearer ${RESEND_KEY}`,
         'Content-Type':  'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        from:    `Prime Alpha Securities <${FROM_EMAIL}>`,
+        to:      toList,
+        subject: subject,
+        html:    html,
+        text:    text,
+      }),
     });
 
     const result = await res.json();
-
     if (!res.ok) {
       console.error(`[EMAIL] Resend error ${res.status}:`, result.message || JSON.stringify(result));
       return;
     }
-
     console.log(`[EMAIL] Sent "${subject}" → ${toList.join(', ')} (id: ${result.id})`);
   } catch (e) {
     console.error('[EMAIL] Fetch failed:', e.message);
@@ -209,10 +194,10 @@ async function notifyEnquiry(data) {
       <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#0057FF;margin-bottom:10px">Message</div>
       <p style="margin:0;font-size:14px;color:#0B0F1A;line-height:1.75">${(data.message||'').replace(/\n/g,'<br>')}</p>
     </div>
-    ${ctaButton(`Reply to ${data.name}`, `mailto:${data.email}?subject=Re: ${encodeURIComponent(data.subject||'Your enquiry — Prime Alpha Securities')}`)}
+    ${ctaButton(`Reply to ${data.name}`, `mailto:${data.email}?subject=Re: ${encodeURIComponent(data.subject||'Your inquiry — Prime Alpha Securities')}`)}
   `);
   const text = `NEW CONTACT ENQUIRY — Prime Alpha Securities\n\nName: ${data.name}\nEmail: ${data.email}\nOrg: ${data.org||'—'}\nSubject: ${data.subject||'—'}\n\n${data.message}`;
-  await sendEmail({ to: NOTIFY_EMAIL, subject: `[PAS] Enquiry from ${data.name}${data.org?' ('+data.org+')':''}`, html, text });
+  await sendEmail({ to: SUPPORT_EMAIL, subject: `[PAS] Inquiry from ${data.name}${data.org?' ('+data.org+')':''}`, html, text });
 }
 
 // POST /api/notify/credit  — private credit application
@@ -236,7 +221,7 @@ async function notifyCredit(data) {
     ${ctaButton('Contact Applicant', `mailto:${data.email}?subject=Re: Your credit application — Prime Alpha Securities`)}
   `);
   const text = `NEW CREDIT APPLICATION — Prime Alpha Securities\n\nApp ID: ${data.appId||'—'}\nApplicant: ${data.name} (${data.email})\nPhone: ${data.phone||'—'}\nType: ${data.type} / ${data.loanType}\nAmount: ${fmtAmount}\nAvailability: ${data.availability||'—'}\n\nPurpose:\n${data.purpose||'—'}`;
-  await sendEmail({ to: NOTIFY_EMAIL, subject: `[PAS Credit] ${fmtAmount} application — ${data.name}`, html, text });
+  await sendEmail({ to: IR_EMAIL, subject: `[PAS Credit] ${fmtAmount} application — ${data.name}`, html, text });
 }
 
 // POST /api/notify/calendar  — new event, email each assigned worker
