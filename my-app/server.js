@@ -2,24 +2,28 @@
 // ═══════════════════════════════════════════════════════════════════════════
 //  Prime Alpha Securities — Backend Server
 //
-//  Ports:  80 (HTTP)  443 (HTTPS)
-//  Routes: /api/notify/*  → SES email notifications
+//  Port:   80  (ALB terminates TLS — EC2 only speaks plain HTTP)
+//  Routes: /api/notify/*  → email notifications via Resend
 //          /api/*         → DynamoDB CRUD (IAM role, server-side)
 //          /*             → Vite dist/ (React SPA)
 //
-//  AWS services used (all via IAM role — no hardcoded keys):
-//    DynamoDB  — data storage
-//    SES       — transactional email
+//  EMAIL SETUP (Resend — free tier, 3 000 emails/month):
+//    1. Sign up at resend.com
+//    2. Add domain: Settings → Domains → Add → primealphasecurities.com
+//       Add the DNS TXT record they show you (takes ~5 min to verify)
+//    3. Create API key: API Keys → Create API Key
+//    4. Add to systemd service (deploy.sh sets this automatically):
+//         Environment=RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
 //
-//  REQUIRED ENV VARS (set in systemd service or export before running):
-//    SES_FROM_EMAIL   — verified SES sender e.g. noreply@primealphasecurities.com
-//    NOTIFY_EMAIL     — inbox that receives contact/credit alerts e.g. ops@primealphasecurities.com
-//    AWS_REGION       — defaults to us-east-1
+//  ENV VARS:
+//    RESEND_API_KEY  — Resend API key (required for email delivery)
+//    SUPPORT_EMAIL   — receives contact form submissions  (default below)
+//    IR_EMAIL        — receives credit applications       (default below)
+//    AWS_REGION      — DynamoDB region (default: eu-west-2)
 // ═══════════════════════════════════════════════════════════════════════════
 'use strict';
 
 const http  = require('http');
-const https = require('https');
 const fs    = require('fs');
 const path  = require('path');
 
@@ -28,21 +32,19 @@ const {
   PutItemCommand, UpdateItemCommand, DeleteItemCommand,
 } = require('@aws-sdk/client-dynamodb');
 const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
-const { SESv2Client, SendEmailCommand }  = require('@aws-sdk/client-sesv2');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const PORT_HTTP    = Number(process.env.PORT_HTTP)  || 80;
-const PORT_HTTPS   = Number(process.env.PORT_HTTPS) || 443;
-const REGION       = process.env.AWS_REGION         || 'eu-west-2';
-const SES_FROM     = process.env.SES_FROM_EMAIL     || 'aurel.botouli@primealphasecurities.com';   // must be SES-verified
-const SUPPORT_EMAIL = process.env.NOTIFY_EMAIL       || 'support@primealphasecurities.com';
-const IR_EMAIL      = process.env.NOTIFY_EMAIL       || 'ir@primealphasecurities.com'; // inbox for internal notifications (contact/credit form submissions, calendar assignments, etc.) — can be same as SUPPORT_EMAIL
-const DIST         = path.join(__dirname, 'dist');
-const CERTS        = path.join(__dirname, 'certs');
+const REGION        = process.env.AWS_REGION    || 'eu-west-2';
+const RESEND_KEY    = process.env.RESEND_API_KEY || '';
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL  || 'support@primealphasecurities.com';
+const IR_EMAIL      = process.env.IR_EMAIL       || 'ir@primealphasecurities.com';
+const FROM_EMAIL    = 'noreply@primealphasecurities.com';
+const DIST          = path.join(__dirname, 'dist');
 
-// ── AWS clients — all use EC2 IAM role automatically ─────────────────────────
+// ── AWS DynamoDB client (IAM role via EC2 IMDS — no keys needed) ──────────────
 const ddb = new DynamoDBClient({ region: REGION });
-const ses = new SESv2Client({ region: REGION });
+
 
 // ── Primary key map ───────────────────────────────────────────────────────────
 const PK = {
@@ -90,29 +92,47 @@ function jsonRes(res, status, data) {
   res.end(body);
 }
 
-// ── SES: send a plain-text + HTML email ───────────────────────────────────────
+// ── Resend: send email via Resend API (resend.com — free tier 3K/month) ─────────
+// No packages needed — uses Node built-in fetch (Node 18+).
+// If RESEND_API_KEY is not set, the email is skipped but the DynamoDB record
+// is still saved, so no data is ever lost.
 async function sendEmail({ to, subject, html, text }) {
-  if (!SES_FROM) { console.warn('[SES] SES_FROM_EMAIL not set — skipping email'); return; }
-  const toList = Array.isArray(to) ? to : [to];
-  const validTo = toList.filter(Boolean);
-  if (!validTo.length) return;
+  const toList = (Array.isArray(to) ? to : [to]).filter(Boolean);
+  if (!toList.length) return;
+
+  if (!RESEND_KEY) {
+    console.warn(`[EMAIL] RESEND_API_KEY not set — skipping email "${subject}". Record saved to DynamoDB.`);
+    return;
+  }
+
+  const payload = {
+    from:    `Prime Alpha Securities <${FROM_EMAIL}>`,
+    to:      toList,
+    subject: subject,
+    html:    html,
+    text:    text,
+  };
+
   try {
-    await ses.send(new SendEmailCommand({
-      FromEmailAddress: SES_FROM,
-      Destination: { ToAddresses: validTo },
-      Content: {
-        Simple: {
-          Subject: { Data: subject, Charset: 'UTF-8' },
-          Body: {
-            Html: { Data: html,  Charset: 'UTF-8' },
-            Text: { Data: text,  Charset: 'UTF-8' },
-          },
-        },
+    const res = await fetch('https://api.resend.com/emails', {
+      method:  'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_KEY}`,
+        'Content-Type':  'application/json',
       },
-    }));
-    console.log(`[SES] Sent "${subject}" → ${validTo.join(', ')}`);
+      body: JSON.stringify(payload),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      console.error(`[EMAIL] Resend error ${res.status}:`, result.message || JSON.stringify(result));
+      return;
+    }
+
+    console.log(`[EMAIL] Sent "${subject}" → ${toList.join(', ')} (id: ${result.id})`);
   } catch (e) {
-    console.error('[SES] Failed:', e.message);
+    console.error('[EMAIL] Fetch failed:', e.message);
   }
 }
 
@@ -174,7 +194,7 @@ function ctaButton(text, href, bg = '#0057FF') {
 
 // ── Notification handlers ─────────────────────────────────────────────────────
 
-// POST /api/notify/enquiry  — general contact form
+// POST /api/notify/inquiry  — general contact form
 async function notifyEnquiry(data) {
   const html = wrapHtml('New Contact Enquiry', `
     <p style="margin:0 0 6px;font-size:22px;font-weight:800;color:#0B0F1A;font-family:Georgia,serif">New Contact Enquiry</p>
@@ -192,7 +212,7 @@ async function notifyEnquiry(data) {
     ${ctaButton(`Reply to ${data.name}`, `mailto:${data.email}?subject=Re: ${encodeURIComponent(data.subject||'Your enquiry — Prime Alpha Securities')}`)}
   `);
   const text = `NEW CONTACT ENQUIRY — Prime Alpha Securities\n\nName: ${data.name}\nEmail: ${data.email}\nOrg: ${data.org||'—'}\nSubject: ${data.subject||'—'}\n\n${data.message}`;
-  await sendEmail({ to: SUPPORT_EMAIL, subject: `[PAS] Enquiry from ${data.name}${data.org?' ('+data.org+')':''}`, html, text });
+  await sendEmail({ to: NOTIFY_EMAIL, subject: `[PAS] Enquiry from ${data.name}${data.org?' ('+data.org+')':''}`, html, text });
 }
 
 // POST /api/notify/credit  — private credit application
@@ -216,7 +236,7 @@ async function notifyCredit(data) {
     ${ctaButton('Contact Applicant', `mailto:${data.email}?subject=Re: Your credit application — Prime Alpha Securities`)}
   `);
   const text = `NEW CREDIT APPLICATION — Prime Alpha Securities\n\nApp ID: ${data.appId||'—'}\nApplicant: ${data.name} (${data.email})\nPhone: ${data.phone||'—'}\nType: ${data.type} / ${data.loanType}\nAmount: ${fmtAmount}\nAvailability: ${data.availability||'—'}\n\nPurpose:\n${data.purpose||'—'}`;
-  await sendEmail({ to: IR_EMAIL, subject: `[PAS Credit] ${fmtAmount} application — ${data.name}`, html, text });
+  await sendEmail({ to: NOTIFY_EMAIL, subject: `[PAS Credit] ${fmtAmount} application — ${data.name}`, html, text });
 }
 
 // POST /api/notify/calendar  — new event, email each assigned worker
@@ -274,7 +294,7 @@ async function handleNotify(req, res) {
   const type = req.url.replace(/^\/api\/notify\/?/, '').split('/')[0];
   const data  = await readBody(req);
   try {
-    if      (type === 'enquiry')      await notifyEnquiry(data);
+    if      (type === 'inquiry')      await notifyEnquiry(data);
     else if (type === 'credit')       await notifyCredit(data);
     else if (type === 'calendar')     await notifyCalendar(data);
     else if (type === 'worker-email') await notifyWorkerEmail(data);

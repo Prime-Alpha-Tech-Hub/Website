@@ -122,8 +122,7 @@ Environment=NODE_ENV=production
 Environment=PORT_HTTP=80
 Environment=PORT_HTTPS=443
 Environment=AWS_REGION=eu-west-2
-Environment=SES_FROM_EMAIL=noreply@primealphasecurities.com
-Environment=NOTIFY_EMAIL=aurel.botouli@primealphasecurities.com
+Environment=RESEND_API_KEY=re_Lqr36fGo_8Ev76CnuytPPVaXdXWRY6Z6W
 
 [Install]
 WantedBy=multi-user.target
