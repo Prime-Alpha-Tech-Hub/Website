@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         EC2_USER = "ubuntu"
-        EC2_HOST = "13.42.10.182"
+        EC2_HOST = "18.175.223.159"
         APP_DIR  = "/home/ubuntu/Prime-Alpha-Securities/my-app"
         PEM_KEY  = "webkey.pem"
     }
