@@ -426,6 +426,9 @@ input, textarea, select { font-family: inherit; }
   .inv-dash-grid { grid-template-columns: 1fr !important; }
   .inv-prof-grid { grid-template-columns: 1fr !important; }
   .inv-table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  /* Login page */
+  .login-panel { width: 100% !important; min-height: auto !important; padding: 32px 24px !important; }
+  .login-form  { padding: 32px 24px !important; }
 }
 @media (max-width: 600px) {
   .rg-4        { grid-template-columns: 1fr !important; }
@@ -1473,21 +1476,15 @@ function FundTerms(){
       ],
       howTitle:"How the Fund Works",
       steps:[
-        [
         "Each strategy operates under its own mandate with a dedicated team — PE, Private Credit, Commodities, and Real Estate each have distinct investment processes.",
         "Capital calls are deployed across strategies based on mandate and opportunity set. Investors may participate in one or more fund verticals.",
         "Performance is calculated per fund. An 'eat what you kill' culture means every deal team is directly accountable for the returns they generate.",
         "Minimum investment levels and co-investment opportunities are available on a case-by-case basis. Contact us to discuss your allocation.",
-        ],
-        [
-          "2025", "Foundation",  "Multi-strategy fund formalised. First institutional-quality track record established with zero outside capital."
-        ],
-        [
-          "2026", "Scale",       "Four active strategies running simultaneously. Real Estate fundraise launched in the United States."
-        ],
-        [
-          "2027 onward", "TBC",  "Milestones and targets for subsequent years are being formalised and will be published once confirmed."
-        ]
+      ],
+      milestones:[
+        ["2025","Foundation","Multi-strategy fund formalised. First institutional-quality track record established with zero outside capital."],
+        ["2026","Scale","Four active strategies running simultaneously. Real Estate fundraise launched in the United States."],
+        ["2027 onward","TBC","Milestones and targets for subsequent years are being formalised and will be published once confirmed."],
       ],
       cta:"Get In Touch",
     },
@@ -1504,16 +1501,17 @@ function FundTerms(){
         "Une entreprise approchant de l'acquisition a besoin d'equity bridge — nous fournissons des billets convertibles avec droits stratégiques.",
       ],
       howTitle:"Comment Fonctionne le Fonds",
-      steps:[[
+      steps:[
         "Chaque stratégie opère sous son propre mandat avec une équipe dédiée — PE, Crédit Privé, Matières Premières et Immobilier ont chacun leurs propres processus d'investissement.",
         "Les capital calls sont déployés selon le mandat et les opportunités. Les investisseurs participent à un ou plusieurs fonds verticaux.",
         "Les commissions de performance sont calculées par fonds. La culture 'on mange ce qu'on chasse' signifie que chaque équipe est comptable des rendements générés.",
         "Les montants minimums d'investissement et les opportunités de co-investissement sont disponibles au cas par cas. Contactez-nous.",
       ],
-        ["2025", "Fondation",        "Fonds multi-stratégies formalisé. Premier track record de qualité institutionnelle établi sans capital extérieur."],
-        ["2026", "Montée en Échelle","Quatre stratégies actives simultanément. Lancement de la levée immobilière aux États-Unis."],
-        ["2027 et au-delà", "TBC",   "Les jalons et objectifs des années suivantes sont en cours de formalisation et seront publiés une fois confirmés."],]
-      ,
+      milestones:[
+        ["2025","Fondation","Fonds multi-stratégies formalisé. Premier track record de qualité institutionnelle établi sans capital extérieur."],
+        ["2026","Montée en Échelle","Quatre stratégies actives simultanément. Lancement de la levée immobilière aux États-Unis."],
+        ["2027 et au-delà","TBC","Les jalons et objectifs des années suivantes sont en cours de formalisation et seront publiés une fois confirmés."],
+      ],
       cta:"Nous Contacter",
     },
   };
@@ -1552,6 +1550,20 @@ function FundTerms(){
               <p style={{color:"var(--body)",fontSize:14,lineHeight:1.8,margin:0}}>{step}</p>
             </div>
           ))}
+          {c.milestones&&(
+            <div style={{marginTop:28,paddingTop:24,borderTop:"var(--bdr)"}}>
+              <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"var(--dim)",marginBottom:18}}>Milestones</div>
+              {c.milestones.map(([year,title,desc],i)=>(
+                <div key={year} style={{display:"flex",gap:20,marginBottom:i<c.milestones.length-1?0:0,paddingBottom:18,borderBottom:i<c.milestones.length-1?"1px solid var(--lg)":"none",marginBottom:i<c.milestones.length-1?18:0}}>
+                  <div style={{flexShrink:0,minWidth:90}}>
+                    <div style={{fontFamily:"var(--ff-m)",fontSize:12,fontWeight:700,color:"var(--blue)"}}>{year}</div>
+                    <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"var(--dim)",marginTop:3}}>{title}</div>
+                  </div>
+                  <p style={{color:"var(--body)",fontSize:13,lineHeight:1.8,margin:0}}>{desc}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div style={{marginTop:32}}>
           <button style={T.btnP} onClick={()=>navigate("Contact")}>{c.cta}</button>
@@ -2122,9 +2134,9 @@ function LoginPage({type,onSuccess}){
   const s2=String(secs%60).padStart(2,"0");
 
   return(
-    <div style={{minHeight:"100vh",display:"flex",background:"var(--ow)"}}>
+    <div style={{minHeight:"100vh",display:"flex",background:"var(--ow)",flexWrap:"wrap"}}>
       {/* Left */}
-      <div style={{width:"42%",background:"var(--head)",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:52}}>
+      <div className="login-panel" style={{width:"42%",background:"var(--head)",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:52}}>
         <LogoInline size={17} dark/>
         <div>
           <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",color:"var(--blue)",marginBottom:16}}>
@@ -2145,7 +2157,7 @@ function LoginPage({type,onSuccess}){
         <div style={{fontSize:11,color:"rgba(255,255,255,0.2)"}}>© {new Date().getFullYear()} Prime Alpha Securities LLC</div>
       </div>
       {/* Right */}
-      <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:52}}>
+      <div className="login-form" style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:52}}>
         <div style={{width:"100%",maxWidth:420}}>
           {step==="creds"?(
             <div className="fu">
@@ -3389,12 +3401,13 @@ export default function App(){
     }
   };
 
+  const isPortal = page==="investor"||page==="worker";
   return(
     <LangCtx.Provider value={[lang,setLang]}>
     <div style={{minHeight:"100vh",background:"var(--w)"}}>
-      <PublicNav/>
+      {!isPortal&&<PublicNav/>}
       {renderPage()}
-      <PublicFooter/>
+      {!isPortal&&<PublicFooter/>}
     </div>
     </LangCtx.Provider>
   );
