@@ -124,6 +124,7 @@ Environment=AWS_REGION=eu-west-2
 Environment=RESEND_API_KEY=re_Lqr36fGo_8Ev76CnuytPPVaXdXWRY6Z6W
 Environment=SUPPORT_EMAIL=support@primealphasecurities.com
 Environment=IR_EMAIL=ir@primealphasecurities.com
+Environment=DEPLOY_TOKEN=pas-deploy-2026-k9x7m3
 
 [Install]
 WantedBy=multi-user.target
