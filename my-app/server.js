@@ -384,7 +384,8 @@ function handleStatic(req, res) {
 }
 
 // ── Deploy webhook — POST /api/deploy  (GitHub Actions → EC2, no SSH needed) ──
-// Set DEPLOY_TOKEN env var on the EC2 process to secure this endpoint.
+// EC2 pulls latest code from GitHub, reinstalls server deps, then restarts.
+// Set DEPLOY_TOKEN env var on EC2 to secure this endpoint.
 function handleDeploy(req, res) {
   if (req.method !== 'POST') return jsonRes(res, 405, { error: 'POST only' });
   const token = new URL(req.url, 'http://x').searchParams.get('token');
@@ -392,10 +393,24 @@ function handleDeploy(req, res) {
     return jsonRes(res, 401, { error: 'Unauthorized' });
   }
   res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.write('Deploy triggered\n');
+  res.write('Deploy started\n');
   res.end();
-  console.log('[DEPLOY] webhook received — restarting...');
-  setTimeout(() => process.exit(0), 300); // process manager (pm2/systemd) restarts
+
+  const { exec } = require('child_process');
+  const ROOT = path.join(__dirname, '..');  // /home/ubuntu/Prime-Alpha-Securities
+  const cmd = [
+    `cd ${ROOT}`,
+    'git pull origin main',
+    `cd ${path.join(ROOT, 'my-app')}`,
+    'npm ci --omit=dev',
+  ].join(' && ');
+
+  console.log('[DEPLOY] pulling latest code...');
+  exec(cmd, { timeout: 120000 }, (err, stdout, stderr) => {
+    if (err) { console.error('[DEPLOY] error:', err.message); }
+    else      { console.log('[DEPLOY] done:', stdout.trim()); }
+    setTimeout(() => process.exit(0), 500); // pm2/systemd auto-restarts
+  });
 }
 
 // ── Single handler — ALB terminates TLS, EC2 always receives plain HTTP ───────
