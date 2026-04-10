@@ -1479,7 +1479,7 @@ function FundTerms(){
         "Minimum investment levels and co-investment opportunities are available on a case-by-case basis. Contact us to discuss your allocation.",
       ],
         ["2025", "Foundation",  "Multi-strategy fund formalised. First institutional-quality track record established with zero outside capital."],
-        ["2026", "Scale",       "Four active strategies running simultaneously. Real Estate fundraise launched in the United States."]
+        ["2026", "Scale",       "Four active strategies running simultaneously. Real Estate fundraise launched in the United States."],
         ["2027 onward", "TBC",  "Milestones and targets for subsequent years are being formalised and will be published once confirmed."]
       ],
       cta:"Get In Touch",
