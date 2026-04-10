@@ -398,18 +398,12 @@ function handleDeploy(req, res) {
 
   const { exec } = require('child_process');
   const ROOT = path.join(__dirname, '..');  // /home/ubuntu/Prime-Alpha-Securities
-  const cmd = [
-    `cd ${ROOT}`,
-    'git pull origin main',
-    `cd ${path.join(ROOT, 'my-app')}`,
-    'npm ci --omit=dev',
-  ].join(' && ');
+  const cmd = `cd ${ROOT} && git pull origin main && cd my-app && sudo bash deploy.sh`;
 
-  console.log('[DEPLOY] pulling latest code...');
-  exec(cmd, { timeout: 120000 }, (err, stdout, stderr) => {
-    if (err) { console.error('[DEPLOY] error:', err.message); }
-    else      { console.log('[DEPLOY] done:', stdout.trim()); }
-    setTimeout(() => process.exit(0), 500); // pm2/systemd auto-restarts
+  console.log('[DEPLOY] pulling and redeploying...');
+  exec(cmd, { timeout: 180000 }, (err, stdout, stderr) => {
+    if (err) console.error('[DEPLOY] error:', err.message);
+    else     console.log('[DEPLOY] done:', stdout.trim());
   });
 }
 
