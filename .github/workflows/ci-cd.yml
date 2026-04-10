@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 1 — Lint
 # ─────────────────────────────────────────────────────────────────────────────
@@ -17,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: my-app/package-lock.json
       - name: Install dependencies
@@ -38,7 +41,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: my-app/package-lock.json
       - name: Install dependencies
@@ -50,7 +53,7 @@ jobs:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 3 — Deploy to EC2  (main branch only)
-# rsync changed files → EC2, then run deploy.sh to reinstall + restart server
+# Requires: port 22 open in EC2 Security Group for 0.0.0.0/0
 # ─────────────────────────────────────────────────────────────────────────────
   deploy:
     name: Deploy to EC2
@@ -58,8 +61,9 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     env:
-      EC2: ubuntu@18.175.223.159
-      APP: /home/ubuntu/Prime-Alpha-Securities/my-app
+      EC2_USER: ubuntu
+      EC2_HOST: 18.175.223.159
+      APP_DIR: /home/ubuntu/Prime-Alpha-Securities/my-app
       KEY: ${{ github.workspace }}/webkey.pem
     steps:
       - uses: actions/checkout@v4
@@ -67,25 +71,40 @@ jobs:
       - name: Fix key permissions
         run: chmod 600 "$KEY"
 
+      - name: Test SSH connectivity
+        run: |
+          ssh -i "$KEY" \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=15 \
+            -o BatchMode=yes \
+            $EC2_USER@$EC2_HOST "echo SSH OK" \
+          || { echo "❌ SSH failed — ensure port 22 is open in the EC2 Security Group for 0.0.0.0/0"; exit 1; }
+
       - name: Sync files to EC2
         run: |
-          rsync -avz \
+          rsync -az \
             --exclude node_modules \
             --exclude .git \
             --exclude dist \
-            -e "ssh -i $KEY -o StrictHostKeyChecking=no" \
+            -e "ssh -i $KEY -o StrictHostKeyChecking=no -o ConnectTimeout=15" \
             my-app/ \
-            $EC2:$APP/
+            $EC2_USER@$EC2_HOST:$APP_DIR/
 
-      - name: Install deps & restart server on EC2
+      - name: Install, build and restart on EC2
         run: |
-          ssh -i "$KEY" -o StrictHostKeyChecking=no $EC2 "
+          ssh -i "$KEY" -o StrictHostKeyChecking=no -o ConnectTimeout=15 $EC2_USER@$EC2_HOST "
             set -e
-            cd $APP
+            cd $APP_DIR
+            echo '→ Installing dependencies...'
             npm ci --omit=dev
+            echo '→ Building frontend...'
             npm run build
-            sudo systemctl restart pas-website 2>/dev/null || \
-            sudo pm2 restart pas-website 2>/dev/null || \
-            (pkill -f 'node server.js' 2>/dev/null; nohup node server.js > /tmp/pas.log 2>&1 &)
-            echo 'Deploy complete'
+            echo '→ Restarting server...'
+            sudo systemctl restart pas-website 2>/dev/null && echo '  systemctl OK' && exit 0
+            pm2 restart pas-website 2>/dev/null && echo '  pm2 OK' && exit 0
+            pkill -f 'node server.js' 2>/dev/null; sleep 1
+            nohup node server.js > /tmp/pas.log 2>&1 &
+            echo '  server started (nohup)'
           "
+        env:
+          APP_DIR: /home/ubuntu/Prime-Alpha-Securities/my-app
