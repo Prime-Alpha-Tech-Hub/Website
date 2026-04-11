@@ -68,6 +68,6 @@ jobs:
       - name: Trigger deploy webhook
         run: |
           curl -sf -X POST \
-            "http://18.135.45.32/api/deploy?token=${{ secrets.DEPLOY_TOKEN }}" \
+            "https://primealphasecurities.com/api/deploy?token=${{ secrets.DEPLOY_TOKEN }}" \
             --max-time 30 \
           && echo "✓ Deploy triggered — EC2 is pulling latest code"
