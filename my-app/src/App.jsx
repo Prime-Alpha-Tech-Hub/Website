@@ -828,11 +828,18 @@ function PublicNav(){
           <button style={{...T.btnP,padding:"9px 20px",fontSize:11}} onClick={()=>navigate("investor")}>Investor Portal</button>
         </div>
 
+        {/* Language toggle (mobile only — always visible) */}
+        <button className="mob-btn"
+          onClick={()=>setLang(l=>l==="en"?"fr":"en")}
+          style={{display:"none",alignItems:"center",justifyContent:"center",padding:"6px 10px",fontSize:11,fontWeight:700,letterSpacing:"0.08em",background:"none",border:"1px solid var(--lg)",borderRadius:"var(--r)",color:"var(--dim)",cursor:"pointer",marginLeft:"auto",flexShrink:0}}>
+          {lang==="en"?"FR":"EN"}
+        </button>
+
         {/* Hamburger (mobile) */}
         <button className="mob-btn"
           onClick={()=>sm(v=>!v)}
           aria-label="Menu"
-          style={{display:"none",flexDirection:"column",justifyContent:"center",gap:5,padding:"8px",background:"none",border:"none",cursor:"pointer",marginLeft:12,flexShrink:0}}>
+          style={{display:"none",flexDirection:"column",justifyContent:"center",gap:5,padding:"8px",background:"none",border:"none",cursor:"pointer",marginLeft:8,flexShrink:0}}>
           <span style={{display:"block",width:22,height:2,background:"var(--head)",borderRadius:1,transition:"all 0.2s",transform:menuOpen?"rotate(45deg) translate(5px,5px)":"none"}}/>
           <span style={{display:"block",width:22,height:2,background:"var(--head)",borderRadius:1,transition:"opacity 0.2s",opacity:menuOpen?0:1}}/>
           <span style={{display:"block",width:22,height:2,background:"var(--head)",borderRadius:1,transition:"all 0.2s",transform:menuOpen?"rotate(-45deg) translate(5px,-5px)":"none"}}/>
