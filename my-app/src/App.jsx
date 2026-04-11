@@ -765,13 +765,25 @@ function PublicNav(){
     window.addEventListener("scroll",fn);return()=>window.removeEventListener("scroll",fn);
   },[]);
   const groups=[
-    {label:"Who We Are",items:["Overview","Our Story","The Team","Culture","Civic Priorities"]},
-    {label:"What We Do",items:["Overview","Private Equity","Private Credit","Commodities","Real Estate"]},
-    {label:"Fund Terms",items:[]},
-    {label:"Research",items:[]},
-    {label:"Investors",items:[]},
-    {label:"Careers",items:[]},
-    {label:"Contact",items:[]},
+    {label:lang==="en"?"Who We Are":"Qui Sommes-Nous",page:null,items:[
+      {label:lang==="en"?"Overview":"Aperçu",page:"Overview"},
+      {label:lang==="en"?"Our Story":"Notre Histoire",page:"Our Story"},
+      {label:lang==="en"?"The Team":"L'Équipe",page:"The Team"},
+      {label:lang==="en"?"Culture":"Culture",page:"Culture"},
+      {label:lang==="en"?"Civic Priorities":"Priorités Civiques",page:"Civic Priorities"},
+    ]},
+    {label:lang==="en"?"What We Do":"Ce Que Nous Faisons",page:null,items:[
+      {label:lang==="en"?"Overview":"Aperçu",page:"What We Do"},
+      {label:lang==="en"?"Private Equity":"Private Equity",page:"Private Equity"},
+      {label:lang==="en"?"Private Credit":"Crédit Privé",page:"Private Credit"},
+      {label:lang==="en"?"Commodities":"Matières Premières",page:"Commodities"},
+      {label:lang==="en"?"Real Estate":"Immobilier",page:"Real Estate"},
+    ]},
+    {label:lang==="en"?"Fund Terms":"Termes du Fonds",page:"Fund Terms",items:[]},
+    {label:lang==="en"?"Research":"Recherche",page:"Research",items:[]},
+    {label:lang==="en"?"Investors":"Investisseurs",page:"Investors",items:[]},
+    {label:lang==="en"?"Careers":"Carrières",page:"Careers",items:[]},
+    {label:lang==="en"?"Contact":"Contact",page:"Contact",items:[]},
   ];
   return(
     <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:500,background:scrolled?"rgba(255,255,255,0.97)":"var(--w)",borderBottom:"var(--bdr)",backdropFilter:"blur(10px)",boxShadow:scrolled?"var(--sh)":"none",transition:"box-shadow 0.2s",overflow:"visible"}}>
@@ -782,7 +794,7 @@ function PublicNav(){
         <div className="desk-nav" style={{display:"flex",flex:1,alignItems:"stretch",height:"100%",marginLeft:32}} onMouseLeave={()=>so(null)}>
           {groups.map(g=>(
             <div key={g.label} style={{position:"relative",height:"100%",display:"flex",alignItems:"center"}} onMouseEnter={()=>so(g.label)}>
-              <button onClick={()=>g.items.length===0&&navigate(g.label)}
+              <button onClick={()=>g.items.length===0&&navigate(g.page||g.label)}
                 style={{padding:"0 12px",height:"100%",fontSize:13,fontWeight:500,whiteSpace:"nowrap",
                   color:open===g.label?"var(--blue)":"var(--body)",background:"none",
                   borderBottom:open===g.label?"2px solid var(--blue)":"2px solid transparent",transition:"all 0.15s"}}>
@@ -791,11 +803,11 @@ function PublicNav(){
               {g.items.length>0&&open===g.label&&(
                 <div className="fu" style={{position:"absolute",top:"100%",left:0,background:"var(--w)",border:"var(--bdr)",borderRadius:"var(--rl)",minWidth:210,zIndex:200,boxShadow:"var(--sh-lg)",overflow:"hidden"}}>
                   {g.items.map(item=>(
-                    <button key={item} onClick={()=>{navigate(item);so(null);}}
+                    <button key={item.page} onClick={()=>{navigate(item.page);so(null);}}
                       style={{display:"block",width:"100%",textAlign:"left",padding:"11px 18px",fontSize:13,color:"var(--body)",background:"none",borderBottom:"1px solid var(--lg)",transition:"background 0.1s"}}
                       onMouseEnter={e=>e.currentTarget.style.background="var(--blue-l)"}
                       onMouseLeave={e=>e.currentTarget.style.background="none"}>
-                      {item}
+                      {item.label}
                     </button>
                   ))}
                 </div>
@@ -833,7 +845,7 @@ function PublicNav(){
           {groups.map(g=>(
             <div key={g.label}>
               {g.items.length===0?(
-                <button onClick={()=>{navigate(g.label);sm(false);}}
+                <button onClick={()=>{navigate(g.page||g.label);sm(false);}}
                   style={{display:"block",width:"100%",textAlign:"left",padding:"14px 24px",fontSize:15,fontWeight:500,color:"var(--body)",background:"none",borderBottom:"1px solid var(--lg)"}}>
                   {g.label}
                 </button>
@@ -841,9 +853,9 @@ function PublicNav(){
                 <>
                   <div style={{padding:"14px 24px 4px",fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"var(--blue)",borderBottom:"1px solid var(--lg)"}}>{g.label}</div>
                   {g.items.map(item=>(
-                    <button key={item} onClick={()=>{navigate(item);sm(false);}}
+                    <button key={item.page} onClick={()=>{navigate(item.page);sm(false);}}
                       style={{display:"block",width:"100%",textAlign:"left",padding:"12px 24px 12px 36px",fontSize:14,color:"var(--body)",background:"none",borderBottom:"1px solid var(--lg)"}}>
-                      {item}
+                      {item.label}
                     </button>
                   ))}
                 </>
@@ -878,9 +890,28 @@ function PublicFooter(){
     </div>
   );
   const en=[
-    [lang==="en"?"Company":"Entreprise",[["Our Story","Our Story"],["Who We Are","Overview"],["The Team","The Team"],["Civic Priorities","Civic Priorities"],["Careers","Careers"]]],
-    [lang==="en"?"Capital Solutions":"Stratégies",[["Private Equity","Private Equity"],["Private Credit","Private Credit"],["Real Estate","Real Estate"],["Commodities","Commodities"],["Fund Terms","Fund Terms"]]],
-    [lang==="en"?"Resources":"Ressources",[["Research","Research"],["Investors","Investors"],["Privacy","Privacy"],["Terms","Terms"],["Notices","Notices"],["Disclosures","Disclosures"]]],
+    [lang==="en"?"Company":"Entreprise",[
+      [lang==="en"?"Our Story":"Notre Histoire","Our Story"],
+      [lang==="en"?"Who We Are":"Qui Sommes-Nous","Overview"],
+      [lang==="en"?"The Team":"L'Équipe","The Team"],
+      [lang==="en"?"Civic Priorities":"Priorités Civiques","Civic Priorities"],
+      [lang==="en"?"Careers":"Carrières","Careers"],
+    ]],
+    [lang==="en"?"Capital Solutions":"Stratégies",[
+      ["Private Equity","Private Equity"],
+      [lang==="en"?"Private Credit":"Crédit Privé","Private Credit"],
+      [lang==="en"?"Real Estate":"Immobilier","Real Estate"],
+      [lang==="en"?"Commodities":"Matières Premières","Commodities"],
+      [lang==="en"?"Fund Terms":"Termes du Fonds","Fund Terms"],
+    ]],
+    [lang==="en"?"Resources":"Ressources",[
+      [lang==="en"?"Research":"Recherche","Research"],
+      [lang==="en"?"Investors":"Investisseurs","Investors"],
+      [lang==="en"?"Privacy":"Confidentialité","Privacy"],
+      [lang==="en"?"Terms":"Conditions","Terms"],
+      [lang==="en"?"Notices":"Mentions Légales","Notices"],
+      [lang==="en"?"Disclosures":"Informations Réglementaires","Disclosures"],
+    ]],
   ];
   return(
     <footer style={{background:"var(--head)",color:"rgba(255,255,255,0.65)"}}>
@@ -3335,7 +3366,8 @@ export default function App(){
   const [page,sp]=useState(()=>IS_PUBLIC?getPageFromPath():"home");
   const [investorUser,siu]=useState(null);
   const [workerUser,swu]=useState(null);
-  const [lang,setLang]=useState("en");
+  const [lang,setLang]=useState(()=>localStorage.getItem("pas-lang")||"en");
+  useEffect(()=>{localStorage.setItem("pas-lang",lang);},[lang]);
   useScrollAnimation();
 
   // Inject global styles
