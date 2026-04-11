@@ -398,7 +398,7 @@ function handleDeploy(req, res) {
 
   const { exec } = require('child_process');
   const ROOT = '/home/ubuntu/Website';
-  const cmd = `cd ${ROOT} && git pull origin main && cd my-app && sudo bash deploy.sh`;
+  const cmd = `cd ${ROOT} && git fetch origin main && git reset --hard origin/main && cd my-app && sudo bash deploy.sh`;
 
   console.log('[DEPLOY] pulling and redeploying...');
   exec(cmd, { timeout: 180000 }, (err, stdout, stderr) => {
