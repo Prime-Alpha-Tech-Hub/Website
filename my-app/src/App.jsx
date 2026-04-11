@@ -1962,16 +1962,66 @@ function Careers() {
 
 
 const RESEARCH_SEED=[
-  {articleId:"seed-1",category:"WAEMU & CEMAC Market Insights",title:"Capital Market Failure in Francophone Africa",excerpt:"A structural analysis of why traditional banks systematically under-serve mid-market companies in the CEMAC and WAEMU corridors, and what alternative capital providers can do differently.",date:"2026-03-15",author:"Noe Désiré Ikoué"},
-  {articleId:"seed-2",category:"WAEMU & CEMAC Market Insights",title:"The Missing Middle: Sizing the Opportunity",excerpt:"Companies with $500K–$10M in annual revenue represent the backbone of economic growth in West Africa, yet access only 12% of available institutional credit. We quantify the gap.",date:"2026-02-20",author:"Noe Désiré Ikoué"},
-  {articleId:"seed-3",category:"R&D Quick Notes",title:"AI-Assisted Due Diligence: Field Notes from CEMAC",excerpt:"Early observations from deploying large language models to accelerate due diligence in markets with limited formal data. What works, what fails, and what we are building next.",date:"2026-03-01",author:"Johan A. Botouli"},
-  {articleId:"seed-4",category:"R&D Quick Notes",title:"Building Infrastructure for Frontier Market Deal Flow",excerpt:"A technical overview of the proprietary data pipelines and screening tools we have built to source and evaluate deals in markets where Bloomberg doesn't reach.",date:"2026-01-10",author:"Johan A. Botouli"},
-  {articleId:"seed-5",category:"International Trade Correlations",title:"CEMAC–Asia Commodity Trade Flows: 2025 Review",excerpt:"How shifting demand from Chinese buyers is reshaping agricultural and textile commodity pricing across the CEMAC corridor, and what traders and investors should watch in 2026.",date:"2026-02-28",author:"Balde Ibrahima"},
-  {articleId:"seed-6",category:"International Trade Correlations",title:"Cross-Border Livestock Markets: Arbitrage and Risk",excerpt:"Physical commodity arbitrage opportunities across the Chad–Cameroon–Nigeria corridor — structural pricing inefficiencies and how we are deploying capital to capture them.",date:"2025-11-15",author:"Balde Ibrahima"},
-  {articleId:"seed-7",category:"Market Direction",title:"African Private Equity: Vintage 2026 Outlook",excerpt:"With global LPs increasingly looking beyond Asia and Latin America, we assess which African markets are positioned to absorb meaningful institutional capital over the next 24 months.",date:"2026-03-20",author:"Noe Désiré Ikoué"},
-  {articleId:"seed-8",category:"Market Direction",title:"Private Credit Spreads in West Africa: A Primer",excerpt:"Direct lending to mid-market West African companies currently prices at 18–28% all-in cost of capital. We explain why, and where spreads are likely to compress first.",date:"2026-01-25",author:"Noe Désiré Ikoué"},
-  {articleId:"seed-9",category:"Shift Towards AI",title:"The Case for AI-Native Investment Operations",excerpt:"Traditional fund operations — from LP reporting to compliance monitoring — are built for a world of scarce data and expensive analysis. AI changes both assumptions. We explain how we are rebuilding from scratch.",date:"2026-03-10",author:"Johan A. Botouli"},
-  {articleId:"seed-10",category:"Shift Towards AI",title:"Generative AI in Financial Due Diligence: Risks and Rewards",excerpt:"We test five leading LLMs against a real CEMAC credit application. Accuracy, hallucination rate, and practical utility — a frank assessment from a team that has moved from experimentation to deployment.",date:"2026-02-05",author:"Johan A. Botouli"},
+  {articleId:"seed-1",
+    category:"WAEMU & CEMAC Market Insights",category_fr:"Marchés UEMOA & CEMAC",
+    title:"Capital Market Failure in Francophone Africa",title_fr:"Défaillance des Marchés de Capitaux en Afrique Francophone",
+    excerpt:"A structural analysis of why traditional banks systematically under-serve mid-market companies in the CEMAC and WAEMU corridors, and what alternative capital providers can do differently.",
+    excerpt_fr:"Une analyse structurelle des raisons pour lesquelles les banques traditionnelles desservent systématiquement les entreprises du marché intermédiaire dans les corridors CEMAC et UEMOA, et ce que les fournisseurs de capitaux alternatifs peuvent faire différemment.",
+    date:"2026-03-15",author:"Noe Désiré Ikoué"},
+  {articleId:"seed-2",
+    category:"WAEMU & CEMAC Market Insights",category_fr:"Marchés UEMOA & CEMAC",
+    title:"The Missing Middle: Sizing the Opportunity",title_fr:"Le Maillon Manquant : Quantifier l'Opportunité",
+    excerpt:"Companies with $500K–$10M in annual revenue represent the backbone of economic growth in West Africa, yet access only 12% of available institutional credit. We quantify the gap.",
+    excerpt_fr:"Les entreprises réalisant entre 500K et 10M USD de chiffre d'affaires annuel représentent l'épine dorsale de la croissance économique en Afrique de l'Ouest, mais n'accèdent qu'à 12% du crédit institutionnel disponible. Nous quantifions cet écart.",
+    date:"2026-02-20",author:"Noe Désiré Ikoué"},
+  {articleId:"seed-3",
+    category:"R&D Quick Notes",category_fr:"Notes R&D",
+    title:"AI-Assisted Due Diligence: Field Notes from CEMAC",title_fr:"Due Diligence Assistée par l'IA : Notes de Terrain CEMAC",
+    excerpt:"Early observations from deploying large language models to accelerate due diligence in markets with limited formal data. What works, what fails, and what we are building next.",
+    excerpt_fr:"Premières observations issues du déploiement de grands modèles de langage pour accélérer la due diligence sur des marchés disposant de données formelles limitées. Ce qui fonctionne, ce qui échoue, et ce que nous construisons ensuite.",
+    date:"2026-03-01",author:"Johan A. Botouli"},
+  {articleId:"seed-4",
+    category:"R&D Quick Notes",category_fr:"Notes R&D",
+    title:"Building Infrastructure for Frontier Market Deal Flow",title_fr:"Construire l'Infrastructure du Deal Flow sur les Marchés Frontières",
+    excerpt:"A technical overview of the proprietary data pipelines and screening tools we have built to source and evaluate deals in markets where Bloomberg doesn't reach.",
+    excerpt_fr:"Un aperçu technique des pipelines de données propriétaires et des outils de screening que nous avons construits pour sourcer et évaluer des opportunités sur des marchés que Bloomberg n'atteint pas.",
+    date:"2026-01-10",author:"Johan A. Botouli"},
+  {articleId:"seed-5",
+    category:"International Trade Correlations",category_fr:"Corrélations du Commerce International",
+    title:"CEMAC–Asia Commodity Trade Flows: 2025 Review",title_fr:"Flux Commerciaux CEMAC–Asie : Bilan 2025",
+    excerpt:"How shifting demand from Chinese buyers is reshaping agricultural and textile commodity pricing across the CEMAC corridor, and what traders and investors should watch in 2026.",
+    excerpt_fr:"Comment l'évolution de la demande des acheteurs chinois remodèle la tarification des matières premières agricoles et textiles dans le corridor CEMAC, et ce que les traders et investisseurs doivent surveiller en 2026.",
+    date:"2026-02-28",author:"Balde Ibrahima"},
+  {articleId:"seed-6",
+    category:"International Trade Correlations",category_fr:"Corrélations du Commerce International",
+    title:"Cross-Border Livestock Markets: Arbitrage and Risk",title_fr:"Marchés Transfrontaliers de Bétail : Arbitrage et Risques",
+    excerpt:"Physical commodity arbitrage opportunities across the Chad–Cameroon–Nigeria corridor — structural pricing inefficiencies and how we are deploying capital to capture them.",
+    excerpt_fr:"Opportunités d'arbitrage sur matières premières physiques dans le corridor Tchad–Cameroun–Nigeria — inefficacités structurelles de prix et comment nous déployons des capitaux pour les saisir.",
+    date:"2025-11-15",author:"Balde Ibrahima"},
+  {articleId:"seed-7",
+    category:"Market Direction",category_fr:"Tendances de Marché",
+    title:"African Private Equity: Vintage 2026 Outlook",title_fr:"Private Equity Africain : Perspectives Millésime 2026",
+    excerpt:"With global LPs increasingly looking beyond Asia and Latin America, we assess which African markets are positioned to absorb meaningful institutional capital over the next 24 months.",
+    excerpt_fr:"Alors que les LPs mondiaux regardent de plus en plus au-delà de l'Asie et de l'Amérique latine, nous évaluons quels marchés africains sont positionnés pour absorber des capitaux institutionnels significatifs au cours des 24 prochains mois.",
+    date:"2026-03-20",author:"Noe Désiré Ikoué"},
+  {articleId:"seed-8",
+    category:"Market Direction",category_fr:"Tendances de Marché",
+    title:"Private Credit Spreads in West Africa: A Primer",title_fr:"Spreads de Crédit Privé en Afrique de l'Ouest : Introduction",
+    excerpt:"Direct lending to mid-market West African companies currently prices at 18–28% all-in cost of capital. We explain why, and where spreads are likely to compress first.",
+    excerpt_fr:"Le prêt direct aux entreprises du marché intermédiaire en Afrique de l'Ouest est actuellement tarifé à 18–28% de coût de capital all-in. Nous expliquons pourquoi et où les spreads sont susceptibles de se comprimer en premier.",
+    date:"2026-01-25",author:"Noe Désiré Ikoué"},
+  {articleId:"seed-9",
+    category:"Shift Towards AI",category_fr:"Virage vers l'IA",
+    title:"The Case for AI-Native Investment Operations",title_fr:"Pour des Opérations d'Investissement Natives à l'IA",
+    excerpt:"Traditional fund operations — from LP reporting to compliance monitoring — are built for a world of scarce data and expensive analysis. AI changes both assumptions. We explain how we are rebuilding from scratch.",
+    excerpt_fr:"Les opérations traditionnelles de fonds — du reporting LP au suivi de conformité — sont construites pour un monde de données rares et d'analyses coûteuses. L'IA change les deux hypothèses. Nous expliquons comment nous reconstruisons de zéro.",
+    date:"2026-03-10",author:"Johan A. Botouli"},
+  {articleId:"seed-10",
+    category:"Shift Towards AI",category_fr:"Virage vers l'IA",
+    title:"Generative AI in Financial Due Diligence: Risks and Rewards",title_fr:"IA Générative en Due Diligence Financière : Risques et Opportunités",
+    excerpt:"We test five leading LLMs against a real CEMAC credit application. Accuracy, hallucination rate, and practical utility — a frank assessment from a team that has moved from experimentation to deployment.",
+    excerpt_fr:"Nous testons cinq LLMs de pointe sur une vraie demande de crédit CEMAC. Précision, taux d'hallucination et utilité pratique — une évaluation franche d'une équipe passée de l'expérimentation au déploiement.",
+    date:"2026-02-05",author:"Johan A. Botouli"},
 ];
 
 function Research(){
@@ -1989,10 +2039,10 @@ function Research(){
           <>
             {/* Category filter */}
             <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:32}}>
-              {["All",...[...new Set(articles.map(a=>a.category))]].map(cat=>(
-                <button key={cat} onClick={()=>setCatFilter(cat)}
-                  style={{...T.btnG,fontSize:12,padding:"7px 14px",background:catFilter===cat?"var(--blue)":"transparent",color:catFilter===cat?"#fff":"var(--dim)",borderColor:catFilter===cat?"var(--blue)":"var(--mg)",transition:"all 0.15s"}}>
-                  {cat}
+              {[{en:"All",fr:"Tout"},...[...new Map(articles.map(a=>[a.category,{en:a.category,fr:a.category_fr||a.category}])).values()]].map(cat=>(
+                <button key={cat.en} onClick={()=>setCatFilter(cat.en)}
+                  style={{...T.btnG,fontSize:12,padding:"7px 14px",background:catFilter===cat.en?"var(--blue)":"transparent",color:catFilter===cat.en?"#fff":"var(--dim)",borderColor:catFilter===cat.en?"var(--blue)":"var(--mg)",transition:"all 0.15s"}}>
+                  {lang==="en"?cat.en:cat.fr}
                 </button>
               ))}
             </div>
@@ -2002,11 +2052,11 @@ function Research(){
                   onMouseEnter={e=>{e.currentTarget.style.boxShadow="var(--sh-md)";e.currentTarget.style.borderColor="var(--blue)";}}
                   onMouseLeave={e=>{e.currentTarget.style.boxShadow="var(--sh)";e.currentTarget.style.borderColor="#DDDFE5";}}>
                   <div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}>
-                    <span style={T.tag()}>{a.category}</span>
+                    <span style={T.tag()}>{lang==="en"?a.category:(a.category_fr||a.category)}</span>
                     <span style={{fontSize:11,color:"var(--dim)",fontFamily:"var(--ff-m)"}}>{a.date}</span>
                   </div>
-                  <h3 style={{...T.hdg,fontSize:19,lineHeight:1.3,marginBottom:10,flex:1}}>{a.title}</h3>
-                  <p style={{fontSize:13,color:"var(--dim)",lineHeight:1.75,marginBottom:12}}>{a.excerpt}</p>
+                  <h3 style={{...T.hdg,fontSize:19,lineHeight:1.3,marginBottom:10,flex:1}}>{lang==="en"?a.title:(a.title_fr||a.title)}</h3>
+                  <p style={{fontSize:13,color:"var(--dim)",lineHeight:1.75,marginBottom:12}}>{lang==="en"?a.excerpt:(a.excerpt_fr||a.excerpt)}</p>
                   <div style={{fontSize:12,color:"var(--dim)"}}>{a.author}</div>
                 </div>
               ))}
@@ -2014,14 +2064,14 @@ function Research(){
           </>
         )}
       </div>
-      <Modal open={!!active} onClose={()=>sact(null)} title={active?.title||""}>
+      <Modal open={!!active} onClose={()=>sact(null)} title={active?(lang==="en"?active.title:(active.title_fr||active.title)):""}>
         {active&&<>
           <div style={{display:"flex",gap:12,marginBottom:20,alignItems:"center"}}>
-            <span style={T.tag()}>{active.category}</span>
+            <span style={T.tag()}>{lang==="en"?active.category:(active.category_fr||active.category)}</span>
             <span style={{fontSize:12,color:"var(--dim)"}}>{active.date} · {active.author}</span>
           </div>
-          <p style={{color:"var(--body)",lineHeight:1.9,marginBottom:16}}>{active.excerpt}</p>
-          <p style={{color:"var(--dim)",fontSize:12,fontStyle:"italic"}}>This analysis represents the views of Prime Alpha Securities' research team and does not constitute investment advice. Past performance is not indicative of future results.</p>
+          <p style={{color:"var(--body)",lineHeight:1.9,marginBottom:16}}>{lang==="en"?active.excerpt:(active.excerpt_fr||active.excerpt)}</p>
+          <p style={{color:"var(--dim)",fontSize:12,fontStyle:"italic"}}>{lang==="en"?"This analysis represents the views of Prime Alpha Securities' research team and does not constitute investment advice. Past performance is not indicative of future results.":"Cette analyse représente les opinions de l'équipe de recherche de Prime Alpha Securities et ne constitue pas un conseil en investissement. Les performances passées ne préjugent pas des performances futures."}</p>
         </>}
       </Modal>
     </div>
