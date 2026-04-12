@@ -927,7 +927,7 @@ function PublicFooter(){
           <div>
             <div style={{marginBottom:16}}><Logo height={32} dark/></div>
             <p style={{fontSize:13,color:"rgba(255,255,255,0.4)",lineHeight:1.8,maxWidth:260,marginBottom:20}}>
-              {lang==="en"
+              /n/n{lang==="en"
                 ?"Pan-African alternative investment management. Flexible capital across Private Equity, Private Credit, Commodities, and Real Estate."
                 :"Gestion d'investissements alternatifs panafricaine. Capitaux flexibles en Private Equity, Crédit Privé, Matières Premières et Immobilier."}
             </p>
@@ -935,8 +935,8 @@ function PublicFooter(){
           {en.map(([h,items])=>col(h,items))}
         </div>
         <div style={{borderTop:"1px solid rgba(255,255,255,0.08)",paddingTop:24,display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:12,flexWrap:"wrap",gap:8}}>
-          <span>© 2025 Prime Alpha Securities Ltd. {lang==="en"?"All rights reserved.":"Tous droits réservés."}</span>
-          <span style={{color:"rgba(255,255,255,0.35)"}}>{DOMAIN} · CEMAC · West Africa · USA</span>
+          <span>© 2025 Prime Alpha Securities Ltd. {lang==="en"?"All rights reserved.":"Tous droits réservés."}  <span style={{color:"rgba(255,255,255,0.35)"}}> CEMAC · West Africa · USA</span></span>
+          
         </div>
       </div>
     </footer>
