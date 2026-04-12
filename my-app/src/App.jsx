@@ -1115,20 +1115,25 @@ function PublicHome(){
             <button style={T.btnG} onClick={()=>navigate("Research")}>{lang==="en"?"All articles →":"Tous les articles →"}</button>
           </div>
           <div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
-            {SEED["articles"].slice(0,2).map((a,i)=>(
-              <div key={a.articleId} className={`fu fu-${i+1}`}
-                style={{...T.card,display:"flex",flexDirection:"column",gap:14,cursor:"pointer",transition:"all 0.2s",borderLeft:"3px solid transparent"}}
-                onMouseEnter={e=>{e.currentTarget.style.borderLeftColor="var(--blue)";e.currentTarget.style.boxShadow="var(--sh-md)";}}
-                onMouseLeave={e=>{e.currentTarget.style.borderLeftColor="transparent";e.currentTarget.style.boxShadow="var(--sh)";}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span style={T.tag()}>{a.category}</span>
-                  <span style={{fontSize:11,color:"var(--dim)",fontFamily:"var(--ff-m)"}}>{a.date}</span>
+            {{SEED["articles"].slice(0,2).map((a,i)=>{
+              const title = a.en ? (lang==="en"?a.en.title:a.fr.title) : a.title;
+              const excerpt = a.en ? (lang==="en"?a.en.excerpt:a.fr.excerpt) : a.excerpt;
+              const category = a.en ? (lang==="en"?a.en.category:a.fr.category) : a.category;
+              return(
+                <div key={a.articleId} className={`fu fu-${i+1}`}
+                  style={{...T.card,display:"flex",flexDirection:"column",gap:14,cursor:"pointer",transition:"all 0.2s",borderLeft:"3px solid transparent"}}
+                  onMouseEnter={e=>{e.currentTarget.style.borderLeftColor="var(--blue)";e.currentTarget.style.boxShadow="var(--sh-md)";}}
+                  onMouseLeave={e=>{e.currentTarget.style.borderLeftColor="transparent";e.currentTarget.style.boxShadow="var(--sh)";}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={T.tag()}>{category}</span>
+                    <span style={{fontSize:11,color:"var(--dim)",fontFamily:"var(--ff-m)"}}>{a.date}</span>
+                  </div>
+                  <h3 style={{fontFamily:"var(--ff-h)",fontSize:20,fontWeight:700,color:"var(--head)",lineHeight:1.25}}>{title}</h3>
+                  <p style={{fontSize:13,color:"var(--dim)",lineHeight:1.8,flex:1}}>{excerpt}</p>
+                  <div style={{fontSize:12,color:"var(--dim)",borderTop:"1px solid var(--lg)",paddingTop:12}}>{a.author}</div>
                 </div>
-                <h3 style={{fontFamily:"var(--ff-h)",fontSize:20,fontWeight:700,color:"var(--head)",lineHeight:1.25}}>{a.title}</h3>
-                <p style={{fontSize:13,color:"var(--dim)",lineHeight:1.8,flex:1}}>{a.excerpt}</p>
-                <div style={{fontSize:12,color:"var(--dim)",borderTop:"1px solid var(--lg)",paddingTop:12}}>{a.author}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -2063,33 +2068,61 @@ function Research(){
   const [loading,sl]=useState(true);
   const [active,sact]=useState(null);
   const [catFilter,setCatFilter]=useState("All");
-  useEffect(()=>{api.getAll("articles").then(r=>{const sorted=[...r].sort((a,b)=>b.date.localeCompare(a.date));sa(sorted.length>0?sorted:RESEARCH_SEED);sl(false);});},[]);
+
+  useEffect(()=>{
+    api.getAll("articles").then(r=>{
+      const sorted=[...r].sort((a,b)=>b.date.localeCompare(a.date));
+      sa(sorted.length>0?sorted:RESEARCH_SEED);
+      sl(false);
+    });
+  },[]);
+
+  // Helper: get field from either bilingual or flat article
+  const g=(a,field)=>{
+    if(a.en&&a.fr) return lang==="en"?(a.en[field]||""):(a.fr[field]||a.en[field]||"");
+    return a[field]||"";
+  };
+
+  // Build unique category list
+  const cats=[...new Map(articles.map(a=>{
+    const en=a.en?a.en.category:a.category;
+    const fr=a.fr?a.fr.category:(a.category_fr||en);
+    return [en,{en,fr}];
+  })).values()];
+
   return(
     <div>
-      <PageHero eyebrow={lang==="en"?"Perspectives":"Perspectives"} title={lang==="en"?"RESEARCH & INSIGHTS":"RECHERCHE & ANALYSES"}/>
+      <PageHero eyebrow="Perspectives" title={lang==="en"?"RESEARCH & INSIGHTS":"RECHERCHE & ANALYSES"}/>
       <div style={{maxWidth:1100,margin:"0 auto",padding:"64px max(16px,4vw)"}}>
         {loading?<Spinner/>:(
           <>
-            {/* Category filter */}
             <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:32}}>
-              {[{en:"All",fr:"Tout"},...[...new Map(articles.map(a=>[a.category,{en:a.category,fr:a.category_fr||a.category}])).values()]].map(cat=>(
+              {[{en:"All",fr:"Tout"},...cats].map(cat=>(
                 <button key={cat.en} onClick={()=>setCatFilter(cat.en)}
-                  style={{...T.btnG,fontSize:12,padding:"7px 14px",background:catFilter===cat.en?"var(--blue)":"transparent",color:catFilter===cat.en?"#fff":"var(--dim)",borderColor:catFilter===cat.en?"var(--blue)":"var(--mg)",transition:"all 0.15s"}}>
+                  style={{...T.btnG,fontSize:12,padding:"7px 14px",
+                    background:catFilter===cat.en?"var(--blue)":"transparent",
+                    color:catFilter===cat.en?"#fff":"var(--dim)",
+                    borderColor:catFilter===cat.en?"var(--blue)":"var(--mg)",
+                    transition:"all 0.15s"}}>
                   {lang==="en"?cat.en:cat.fr}
                 </button>
               ))}
             </div>
             <div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
-              {articles.filter(a=>catFilter==="All"||a.category===catFilter).map((a,i)=>(
-                <div key={a.articleId} className={`fu fu-${Math.min(i+1,4)}`} onClick={()=>sact(a)} style={{...T.card,cursor:"pointer",display:"flex",flexDirection:"column",transition:"all 0.2s"}} data-animate data-delay={String(Math.min(i%4+1,5))}
+              {articles
+                .filter(a=>catFilter==="All"||(a.en?a.en.category:a.category)===catFilter)
+                .map((a,i)=>(
+                <div key={a.articleId} className={`fu fu-${Math.min(i+1,4)}`}
+                  onClick={()=>sact(a)}
+                  style={{...T.card,cursor:"pointer",display:"flex",flexDirection:"column",transition:"all 0.2s"}}
                   onMouseEnter={e=>{e.currentTarget.style.boxShadow="var(--sh-md)";e.currentTarget.style.borderColor="var(--blue)";}}
                   onMouseLeave={e=>{e.currentTarget.style.boxShadow="var(--sh)";e.currentTarget.style.borderColor="#DDDFE5";}}>
                   <div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}>
-                    <span style={T.tag()}>{lang==="en"?a.category:(a.category_fr||a.category)}</span>
+                    <span style={T.tag()}>{g(a,"category")}</span>
                     <span style={{fontSize:11,color:"var(--dim)",fontFamily:"var(--ff-m)"}}>{a.date}</span>
                   </div>
-                  <h3 style={{...T.hdg,fontSize:19,lineHeight:1.3,marginBottom:10,flex:1}}>{lang==="en"?a.title:(a.title_fr||a.title)}</h3>
-                  <p style={{fontSize:13,color:"var(--dim)",lineHeight:1.75,marginBottom:12}}>{lang==="en"?a.excerpt:(a.excerpt_fr||a.excerpt)}</p>
+                  <h3 style={{...T.hdg,fontSize:19,lineHeight:1.3,marginBottom:10,flex:1}}>{g(a,"title")}</h3>
+                  <p style={{fontSize:13,color:"var(--dim)",lineHeight:1.75,marginBottom:12}}>{g(a,"excerpt")}</p>
                   <div style={{fontSize:12,color:"var(--dim)"}}>{a.author}</div>
                 </div>
               ))}
@@ -2097,14 +2130,19 @@ function Research(){
           </>
         )}
       </div>
-      <Modal open={!!active} onClose={()=>sact(null)} title={active?(lang==="en"?active.title:(active.title_fr||active.title)):""}>
+      <Modal open={!!active} onClose={()=>sact(null)}
+        title={active?g(active,"title"):""}>
         {active&&<>
           <div style={{display:"flex",gap:12,marginBottom:20,alignItems:"center"}}>
-            <span style={T.tag()}>{lang==="en"?active.category:(active.category_fr||active.category)}</span>
+            <span style={T.tag()}>{g(active,"category")}</span>
             <span style={{fontSize:12,color:"var(--dim)"}}>{active.date} · {active.author}</span>
           </div>
-          <p style={{color:"var(--body)",lineHeight:1.9,marginBottom:16}}>{lang==="en"?active.excerpt:(active.excerpt_fr||active.excerpt)}</p>
-          <p style={{color:"var(--dim)",fontSize:12,fontStyle:"italic"}}>{lang==="en"?"This analysis represents the views of Prime Alpha Securities' research team and does not constitute investment advice. Past performance is not indicative of future results.":"Cette analyse représente les opinions de l'équipe de recherche de Prime Alpha Securities et ne constitue pas un conseil en investissement. Les performances passées ne préjugent pas des performances futures."}</p>
+          <p style={{color:"var(--body)",lineHeight:1.9,marginBottom:16}}>{g(active,"excerpt")}</p>
+          <p style={{color:"var(--dim)",fontSize:12,fontStyle:"italic"}}>
+            {lang==="en"
+              ?"This analysis represents the views of Prime Alpha Securities' research team and does not constitute investment advice."
+              :"Cette analyse représente les opinions de l'équipe de recherche de Prime Alpha Securities et ne constitue pas un conseil en investissement."}
+          </p>
         </>}
       </Modal>
     </div>
