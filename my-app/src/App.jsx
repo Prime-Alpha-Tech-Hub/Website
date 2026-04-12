@@ -1104,40 +1104,68 @@ function PublicHome(){
         </div>
       </section>
 
+      ```jsx
       {/* ── Research ─────────────────────────────────────────────────────── */}
       <section style={{padding:"96px max(24px,6vw)",background:"var(--ow)"}}>
         <div style={{maxWidth:1100,margin:"0 auto"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:48}}>
             <div>
               <SectionLabel>{lang==="en"?"Latest Thinking":"Réflexions Récentes"}</SectionLabel>
-              <h2 style={{fontFamily:"var(--ff-h)",fontSize:"clamp(32px,4vw,52px)",fontWeight:800,color:"var(--head)",letterSpacing:"-0.5px"}}>{lang==="en"?"RESEARCH & INSIGHTS":"RECHERCHE & ANALYSES"}</h2>
+              <h2 style={{fontFamily:"var(--ff-h)",fontSize:"clamp(32px,4vw,52px)",fontWeight:800,color:"var(--head)",letterSpacing:"-0.5px"}}>
+                {lang==="en"?"RESEARCH & INSIGHTS":"RECHERCHE & ANALYSES"}
+              </h2>
             </div>
-            <button style={T.btnG} onClick={()=>navigate("Research")}>{lang==="en"?"All articles →":"Tous les articles →"}</button>
+            <button style={T.btnG} onClick={()=>navigate("Research")}>
+              {lang==="en"?"All articles →":"Tous les articles →"}
+            </button>
           </div>
           <div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
-            {{SEED["articles"].slice(0,2).map((a,i)=>{
-              const title = a.en ? (lang==="en"?a.en.title:a.fr.title) : a.title;
-              const excerpt = a.en ? (lang==="en"?a.en.excerpt:a.fr.excerpt) : a.excerpt;
-              const category = a.en ? (lang==="en"?a.en.category:a.fr.category) : a.category;
-              return(
-                <div key={a.articleId} className={`fu fu-${i+1}`}
-                  style={{...T.card,display:"flex",flexDirection:"column",gap:14,cursor:"pointer",transition:"all 0.2s",borderLeft:"3px solid transparent"}}
-                  onMouseEnter={e=>{e.currentTarget.style.borderLeftColor="var(--blue)";e.currentTarget.style.boxShadow="var(--sh-md)";}}
-                  onMouseLeave={e=>{e.currentTarget.style.borderLeftColor="transparent";e.currentTarget.style.boxShadow="var(--sh)";}}>
+            {SEED["articles"].slice(0,2).map((a,i)=>{
+              const title    = a.en ? (lang==="en" ? a.en.title    : a.fr.title   ) : a.title;
+              const excerpt  = a.en ? (lang==="en" ? a.en.excerpt  : a.fr.excerpt ) : a.excerpt;
+              const category = a.en ? (lang==="en" ? a.en.category : a.fr.category) : a.category;
+              return (
+                <div
+                  key={a.articleId}
+                  className={`fu fu-${i+1}`}
+                  style={{
+                    ...T.card,
+                    display:"flex",
+                    flexDirection:"column",
+                    gap:14,
+                    cursor:"pointer",
+                    transition:"all 0.2s",
+                    borderLeft:"3px solid transparent",
+                  }}
+                  onMouseEnter={e=>{
+                    e.currentTarget.style.borderLeftColor="var(--blue)";
+                    e.currentTarget.style.boxShadow="var(--sh-md)";
+                  }}
+                  onMouseLeave={e=>{
+                    e.currentTarget.style.borderLeftColor="transparent";
+                    e.currentTarget.style.boxShadow="var(--sh)";
+                  }}
+                >
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                     <span style={T.tag()}>{category}</span>
                     <span style={{fontSize:11,color:"var(--dim)",fontFamily:"var(--ff-m)"}}>{a.date}</span>
                   </div>
-                  <h3 style={{fontFamily:"var(--ff-h)",fontSize:20,fontWeight:700,color:"var(--head)",lineHeight:1.25}}>{title}</h3>
-                  <p style={{fontSize:13,color:"var(--dim)",lineHeight:1.8,flex:1}}>{excerpt}</p>
-                  <div style={{fontSize:12,color:"var(--dim)",borderTop:"1px solid var(--lg)",paddingTop:12}}>{a.author}</div>
+                  <h3 style={{fontFamily:"var(--ff-h)",fontSize:20,fontWeight:700,color:"var(--head)",lineHeight:1.25}}>
+                    {title}
+                  </h3>
+                  <p style={{fontSize:13,color:"var(--dim)",lineHeight:1.8,flex:1}}>
+                    {excerpt}
+                  </p>
+                  <div style={{fontSize:12,color:"var(--dim)",borderTop:"1px solid var(--lg)",paddingTop:12}}>
+                    {a.author}
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
       </section>
-
+```
       {/* ── CTA ──────────────────────────────────────────────────────────── */}
       <section style={{background:"var(--blue)",padding:"80px max(24px,6vw)"}}>
         <div style={{maxWidth:1100,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center",gap:40,flexWrap:"wrap"}}>
