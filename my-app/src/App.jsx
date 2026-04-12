@@ -240,11 +240,35 @@ const SEED = {
     {eventId:"ev003",date:"2024-07-30",title:"Due Diligence Site Visit — Greenleaf",members:["w002"]},
   ],
   "articles": [
-    {articleId:"a001",title:"The Illiquidity Premium in Private Markets",date:"2024-06-12",author:"Alexandra Renard",category:"Private Equity",excerpt:"As public markets compress multiples, sophisticated capital allocators are increasingly turning to private markets to capture the illiquidity premium — but the calculus demands precision and conviction."},
-    {articleId:"a002",title:"Credit Cycle Dynamics: Navigating the Turn",date:"2024-05-28",author:"James Okafor",category:"Private Credit",excerpt:"The tightening of senior lending standards creates a compelling entry point for direct lenders with flexible mandates and robust underwriting frameworks."},
-    {articleId:"a003",title:"Macro Regime Shifts and Portfolio Construction",date:"2024-04-15",author:"Alexandra Renard",category:"Fixed Income",excerpt:"Higher-for-longer interest rate environments fundamentally alter the correlation structure between asset classes, requiring a rethink of traditional portfolio construction."},
-    {articleId:"a004",title:"Real Assets as Inflation Hedges: Evidence from Five Cycles",date:"2024-03-02",author:"Research Team",category:"Real Estate",excerpt:"A longitudinal study of real asset performance across five inflationary regimes reveals consistent outperformance relative to nominal bonds and mixed results versus equities."},
-  ],
+   {articleId:"a001",
+   en:{title:"Capturing the Illiquidity Premium Across African Private Markets",category:"Private Equity",excerpt:"As global capital compresses public market multiples, disciplined allocators are increasingly turning to African private equity to capture structural illiquidity premiums — but execution demands deep regional conviction and patient capital deployment."},
+   fr:{title:"Capturer la Prime d'Illiquidité sur les Marchés Privés Africains",category:"Private Equity",excerpt:"Alors que les capitaux mondiaux compriment les multiples des marchés publics, les allocateurs disciplinés se tournent de plus en plus vers le private equity africain pour capter des primes d'illiquidité structurelles — mais l'exécution exige une conviction régionale profonde."},
+   date:"2026-01-15",author:"Noe Désiré Ikoué"},
+
+  {articleId:"a002",
+   en:{title:"Direct Lending in Emerging Markets: A Credit Cycle Perspective",category:"Private Credit",excerpt:"Tightening senior lending standards across West Africa and West Asia create compelling entry points for direct lenders with flexible mandates, short-duration structures, and robust asset-backed underwriting frameworks."},
+   fr:{title:"Prêt Direct en Marchés Émergents : Perspective du Cycle du Crédit",category:"Crédit Privé",excerpt:"Le resserrement des normes de prêt senior en Afrique de l'Ouest et en Asie de l'Ouest crée des points d'entrée convaincants pour les prêteurs directs avec des mandats flexibles et des structures à court terme adossées à des actifs."},
+   date:"2026-02-08",author:"Ibrahima Balde"},
+
+  {articleId:"a003",
+   en:{title:"Commodity Supply Chains as Alpha Sources: West Africa and West Asia",category:"Commodities",excerpt:"Regional supply-demand imbalances in agricultural and hard commodities create persistent inefficiencies that disciplined physical and derivative positioning can systematically exploit for uncorrelated returns."},
+   fr:{title:"Les Chaînes d'Approvisionnement en Matières Premières comme Sources d'Alpha",category:"Matières Premières",excerpt:"Les déséquilibres régionaux offre-demande dans les matières premières agricoles et dures créent des inefficacités persistantes que des positions physiques et dérivées disciplinées peuvent exploiter systématiquement."},
+   date:"2026-01-28",author:"Noe Désiré Ikoué"},
+
+  {articleId:"a004",
+   en:{title:"Real Estate as Capital Preservation in High-Growth African Markets",category:"Real Estate",excerpt:"Commercial and residential properties in high-growth African markets offer compelling risk-adjusted returns through strong tenant covenants, stable cash distributions, and strategic value-add initiatives insulated from global rate cycles."},
+   fr:{title:"L'Immobilier comme Préservation du Capital dans les Marchés Africains à Forte Croissance",category:"Immobilier",excerpt:"Les propriétés commerciales et résidentielles dans les marchés africains à forte croissance offrent des rendements ajustés au risque convaincants grâce à des engagements locataires solides et des distributions stables."},
+   date:"2025-12-10",author:"Ibrahima Balde"},
+
+  {articleId:"a005",
+   en:{title:"Portfolio Construction in Low-Correlation Multi-Strategy Funds",category:"Portfolio Strategy",excerpt:"Building a genuinely low-correlation portfolio across private equity, credit, commodities, and real estate requires structural independence between strategies — not just asset class diversification on paper."},
+   fr:{title:"Construction de Portefeuille dans les Fonds Multi-Stratégies à Faible Corrélation",category:"Stratégie de Portefeuille",excerpt:"Construire un portefeuille à faible corrélation réelle entre private equity, crédit, matières premières et immobilier exige une indépendance structurelle entre les stratégies — pas seulement une diversification sur le papier."},
+   date:"2026-02-20",author:"Johan Aurel Botouli"},
+
+  {articleId:"a006",
+   en:{title:"The Case for Emerging Market Private Credit in a Higher-For-Longer Environment",category:"Private Credit",excerpt:"While rising rates compress public fixed income returns, short-duration asset-backed private credit in emerging markets offers floating-rate exposure with capital preservation characteristics unavailable in liquid markets."},
+   fr:{title:"L'Argument pour le Crédit Privé en Marchés Émergents dans un Contexte de Taux Élevés Prolongés",category:"Crédit Privé",excerpt:"Alors que la hausse des taux comprime les rendements obligataires publics, le crédit privé à court terme adossé à des actifs offre une exposition à taux variable avec des caractéristiques de préservation du capital indisponibles sur les marchés liquides."},
+   date:"2026-03-05",author:"Noe Désiré Ikoué"}, ],
   "documents": [
     {docId:"r001",title:"Systematic Factor Exposure Model v2.3",date:"2024-06-01",status:"In Testing",description:"An enhanced multi-factor risk model incorporating alternative data signals from satellite imagery, credit card transactions, and ESG metrics."},
     {docId:"r002",title:"AI-Assisted Due Diligence Pipeline",date:"2024-05-15",status:"Deployed",description:"LLM-powered document parsing and financial statement normalization reducing initial DD turnaround from 5 days to under 6 hours."},
