@@ -927,9 +927,11 @@ function PublicFooter(){
           <div>
             <div style={{marginBottom:16}}><Logo height={32} dark/></div>
             <p style={{fontSize:13,color:"rgba(255,255,255,0.4)",lineHeight:1.8,maxWidth:260,marginBottom:20}}>
+              <br />
+              <br />
               {lang==="en"
-                ?<>"Pan-African alternative investment management. Flexible capital across Private Equity, Private Credit, Commodities, and Real Estate." </>
-                :<>"Gestion d'investissements alternatifs panafricaine. Capitaux flexibles en Private Equity, Crédit Privé, Matières Premières et Immobilier." </>}
+                ?"Pan-African alternative investment management. Flexible capital across Private Equity, Private Credit, Commodities, and Real Estate." 
+                :"Gestion d'investissements alternatifs panafricaine. Capitaux flexibles en Private Equity, Crédit Privé, Matières Premières et Immobilier." }
             </p>
           </div>
           {en.map(([h,items])=>col(h,items))}
