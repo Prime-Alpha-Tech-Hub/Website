@@ -47,32 +47,30 @@ resource "aws_route53_record" "root" {
   }
 }
 
-resource "aws_dynamodb_table" "app_tables" {
-  count = 10
+# # ── RDS PostgreSQL (replaces DynamoDB) ───────────────────────────────────────
+# module "rds" {
+#   source = "./modules/rds"
 
-  name = [
-    "investor",
-    "portfolios",
-    "documents",
-    "workers",
-    "calendar",
-    "pe_companies",
-    "credit_application",
-    "real_estate",
-    "articles",
-    "enquiries"
-  ][count.index]
+#   identifier = "pas-saas-db"
+#   vpc_id     = "vpc-097399b9d9932aced"
+#   vpc_cidr   = "10.0.0.0/20"
 
-  billing_mode = "PAY_PER_REQUEST"
+#   # Existing private subnets (10.0.8-10/24 range, eu-west-2b/a/c)
+#   private_subnet_ids = [
+#     "subnet-032da43d930d1d797",
+#     "subnet-068d202c68ca936fc",
+#     "subnet-06ec1565a3115fbee",
+#   ]
 
-  hash_key = "id"
+#   db_name           = "pas_saas"
+#   db_username       = var.db_username
+#   db_password       = var.db_password
+#   instance_class    = "db.t3.micro"
+#   allocated_storage = 20
+#   engine_version    = "15.4"
 
-  attribute {
-    name = "id"
-    type = "S"
-  }
-
-  tags = {
-    Environment = "dev"
-  }
-}
+#   # Bastion SSH — EC2 is inside the VPC and can reach RDS port 5432
+#   bastion_host             = "18.135.45.32"
+#   bastion_user             = "ubuntu"
+#   bastion_private_key_path = "${path.module}/webkey.pem"
+# }

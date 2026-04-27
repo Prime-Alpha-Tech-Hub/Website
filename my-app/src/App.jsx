@@ -7,7 +7,7 @@
 //    investor.primealphasecurities.com → Investor portal login + dashboard
 //    worker.primealphasecurities.com   → Team console login + dashboard
 //
-//  Backend: AWS DynamoDB — SDK v3 direct (root credentials)
+//  Backend: AWS RDS — SDK v3 direct (root credentials)
 //  Tables provisioned via Terraform:
 //    investor           PK: investorId  (S)
 //    portfolios         PK: portfolioId (S)
@@ -240,7 +240,7 @@ const SEED = {
     {eventId:"ev003",date:"2024-07-30",title:"Due Diligence Site Visit — Greenleaf",members:["w002"]},
   ],
   "articles": [
-    {articleId:"a001",title:"The Illiquidity Premium in Private Markets",date:"2024-06-12",author:"Alexandra Renard",category:"Private Equity",excerpt:"As public markets compress multiples, sophisticated capital allocators are increasingly turning to private markets to capture the illiquidity premium — but the calculus demands precision and conviction."},
+    {articleId:"a001",title:"The Illiquidity Premium in Private Markets",date:"2024-06-12",author:"Alexandra Renard",category:"Private Equity",excerpt:"As public markets compress multiples, sophisticated capital allocators are increasingly turning to private markets to capture the illiquidity premium but the calculus demands precision and conviction."},
     {articleId:"a002",title:"Credit Cycle Dynamics: Navigating the Turn",date:"2024-05-28",author:"James Okafor",category:"Private Credit",excerpt:"The tightening of senior lending standards creates a compelling entry point for direct lenders with flexible mandates and robust underwriting frameworks."},
     {articleId:"a003",title:"Macro Regime Shifts and Portfolio Construction",date:"2024-04-15",author:"Alexandra Renard",category:"Fixed Income",excerpt:"Higher-for-longer interest rate environments fundamentally alter the correlation structure between asset classes, requiring a rethink of traditional portfolio construction."},
     {articleId:"a004",title:"Real Assets as Inflation Hedges: Evidence from Five Cycles",date:"2024-03-02",author:"Research Team",category:"Real Estate",excerpt:"A longitudinal study of real asset performance across five inflationary regimes reveals consistent outperformance relative to nominal bonds and mixed results versus equities."},
@@ -1052,8 +1052,8 @@ function PublicHome(){
             </h2>
             <p style={{color:"rgba(255,255,255,0.55)",fontSize:15,lineHeight:1.9,marginBottom:24}}>
               {lang==="en"
-                ?"A group of students — engineers, a roboticist, and one very persistent finance guy — started lending money to friends in June 2024. What began as $56,719 in seed capital has grown to $1.92M in AUM across four strategies."
-                :"Un groupe d'étudiants — ingénieurs, roboticien et un homme de finance très tenace — ont commencé à prêter de l'argent à leurs amis en juin 2024. Ce qui a commencé avec 56 719 $ est devenu 1,92 M$ d'AUM sur quatre stratégies."}
+                ?"A group of students engineers, a roboticist, and one very persistent finance guy started lending money to friends in June 2024. What began as $56,719 in seed capital has grown to $1.92M in AUM across four strategies."
+                :"Un groupe d'étudiants ingénieurs, roboticien et un homme de finance très tenace ont commencé à prêter de l'argent à leurs amis en juin 2024. Ce qui a commencé avec 56 719 $ est devenu 1,92 M$ d'AUM sur quatre stratégies."}
             </p>
             <blockquote style={{borderLeft:"3px solid var(--blue)",paddingLeft:16,marginBottom:28}}>
               <p style={{color:"rgba(255,255,255,0.65)",fontSize:13,fontStyle:"italic",lineHeight:1.7}}>
@@ -1132,47 +1132,47 @@ function WhoWeAre({sub}){
   const [lang]=useLang();
   const C={
     Overview:{
-      en:{h:"Who We Are",body:"Prime Alpha Securities is a Pan-African alternative investment management firm founded in June 2024 by three co-founders — an economist, a commodity engineer, and a technologist. We deploy flexible capital across Private Equity, Private Credit, Commodities, and Real Estate — primarily across CEMAC and West African markets, with an expanding U.S. Real Estate platform. We exist to correct a specific capital market failure: the Missing Middle of African business — companies too large for microfinance and too informal for institutional PE.",
+      en:{h:"Who We Are",body:"Prime Alpha Securities is a Pan-African alternative investment management firm founded in June 2024 by three co-founders — an economist, a commodity engineer, and a technologist. We deploy flexible capital across Private Equity, Private Credit, Commodities, and Real Estate primarily across CEMAC and West African markets, with an expanding U.S. Real Estate platform. We exist to correct a specific capital market failure: the Missing Middle of African business companies too large for microfinance and too informal for institutional PE.",
         stats:[["June 2024","Founded","CEMAC / West Africa"],["$1.92M","AUM, Dec. 2026","Across 4 strategies"],["153.7%","Blended Return","All capital ever deployed"],["$20M","2030 Target","Conservative AUM target"]]},
       fr:{h:"Qui Sommes-Nous",body:"Prime Alpha Securities est une firme panafricaine de gestion d'investissements alternatifs fondée en juin 2024 par trois co-fondateurs. Nous déployons des capitaux flexibles en Private Equity, Crédit Privé, Matières Premières et Immobilier, principalement sur les marchés CEMAC et Afrique de l'Ouest, avec une plateforme Immobilier en expansion aux États-Unis.",
         stats:[["Juin 2024","Fondé","CEMAC / Afrique de l'Ouest"],["1,92 M$","AUM, Déc. 2026","Sur 4 stratégies"],["153,7%","Rendement Pondéré","Tout capital déployé"],["20 M$","Objectif 2030","Scénario conservateur"]]},
     },
     Culture:{
-      en:{h:"Our Culture",body:"Culture is not what you say you believe. It is what you do when you are under pressure, short on time, and the right answer is inconvenient. These are the non-negotiables that define how we operate — built before pressure tested them.",
+      en:{h:"Our Culture",body:"Culture is not what you say you believe. It is what you do when you are under pressure, short on time, and the right answer is inconvenient. These are the non-negotiables that define how we operate built before pressure tested them.",
         pillars:[
           ["Eat What You Kill","Every deal team is directly accountable for the returns they generate. No hiding behind aggregated fund performance. We hunt together, but individual accountability is absolute."],
           ["Zero Tolerance for Bribery","Any engagement in bribery of public officials, by any team member or portfolio company, results in immediate divestment and disclosure to LPs. No exceptions for 'how business is done here.'"],
           ["Fiduciary Primacy","LP interests are never subordinated to personal founder interests. All conflicts of interest are disclosed within 24 hours of identification. This is not a guideline. It is a non-negotiable."],
-          ["First-Mover Mindset","We are not replicating Wall Street in Africa. We are building something only Africa could create — with its own rhythm, ambition, and rules. The CEMAC region's structural constraints are our competitive moat, not a limitation."],
-          ["Legal Compliance — Always","We do not make investments in markets where operating legally is structurally impossible, regardless of return opportunity. Tone at the top is a behavioral pattern, not a communication strategy."],
+          ["First-Mover Mindset","We are not replicating Wall Street in Africa. We are building something only Africa could create with its own rhythm, ambition, and rules. The CEMAC region's structural constraints are our competitive moat, not a limitation."],
+          ["Legal Compliance Always","We do not make investments in markets where operating legally is structurally impossible, regardless of return opportunity. Tone at the top is a behavioral pattern, not a communication strategy."],
           ["Disagreement on the Record","When founders disagree on an investment or strategic decision and one is overruled, the dissenting position is recorded in investment committee minutes. We prevent revisionism by documenting it."],
         ]},
       fr:{h:"Notre Culture",body:"La culture n'est pas ce que vous dites croire. C'est ce que vous faites sous pression, en manque de temps, quand la bonne réponse est inconfortable. Ce sont les non-négociables qui définissent notre façon d'opérer.",
         pillars:[
           ["On Mange Ce Qu'on Chasse","Chaque équipe de deal est directement responsable des rendements qu'elle génère. Pas de refuge derrière une performance agrégée. Nous chassons ensemble, mais la responsabilité individuelle est absolue."],
-          ["Tolérance Zéro pour la Corruption","Tout engagement dans la corruption de fonctionnaires — par tout membre de l'équipe ou société du portefeuille — entraîne une désinvestissement immédiat et une divulgation aux LPs. Aucune exception."],
+          ["Tolérance Zéro pour la Corruption","Tout engagement dans la corruption de fonctionnaires par tout membre de l'équipe ou société du portefeuille entraîne une désinvestissement immédiat et une divulgation aux LPs. Aucune exception."],
           ["Primauté Fiduciaire","Les intérêts des LPs ne sont jamais subordonnés aux intérêts personnels des fondateurs. Tous les conflits d'intérêts sont divulgués dans les 24 heures suivant leur identification."],
-          ["Esprit Pionnier","Nous ne répliquons pas Wall Street en Afrique. Nous construisons quelque chose que seule l'Afrique pouvait créer — avec son rythme, ses ambitions, ses règles."],
-          ["Conformité Légale — Toujours","Nous n'investissons pas dans des marchés où opérer légalement est structurellement impossible, quelle que soit l'opportunité de rendement."],
+          ["Esprit Pionnier","Nous ne répliquons pas Wall Street en Afrique. Nous construisons quelque chose que seule l'Afrique pouvait créer avec son rythme, ses ambitions, ses règles."],
+          ["Conformité Légale Toujours","Nous n'investissons pas dans des marchés où opérer légalement est structurellement impossible, quelle que soit l'opportunité de rendement."],
           ["Désaccord Consigné","Quand les fondateurs ne sont pas d'accord sur une décision, la position dissidente est enregistrée dans les procès-verbaux du comité d'investissement."],
         ]},
     },
     "Our Story":{
-      en:{eyebrow:"Genesis",h:"OUR STORY",body:"The unlikely origin story nobody saw coming — except us.",
+      en:{eyebrow:"Genesis",h:"OUR STORY",body:"The unlikely origin story nobody saw coming except us.",
         timeline:[
-          ["June 2024","The Spark","A group of college students — engineers, a roboticist, and one very persistent finance guy — started lending money to friends. Informally. Profitably. Repeatedly. What began as peer-to-peer credit became the kernel of an institutional investment firm."],
-          ["Q3 2024","The Realization","Noe Ikoué looked at the group's chaotic deals and said: 'We're already running a fund. Let's make it official.' The informal activity had a track record. It just needed a structure — and the discipline to turn it into something institutional."],
-          ["Q4 2024","The Pivot","They explored a hedge fund model — until they looked carefully at CEMAC markets. Illiquid. Limited derivatives. No short-selling infrastructure. The data said change. They pivoted to Private Equity and built a flexible capital thesis around the specific failures of the markets they knew."],
-          ["2025","Formalization","The multi-strategy framework took shape. Original capital of $56,719 grew to $167,388 — a +195% return in 11 months with zero outside capital. A verifiable track record was underway. The firm's DNA was written."],
+          ["June 2024","The Spark","A group of college students engineers, a roboticist, and one very persistent finance guy started lending money to friends. Informally. Profitably. Repeatedly. What began as peer-to-peer credit became the kernel of an institutional investment firm."],
+          ["Q3 2024","The Realization","Noe Ikoué looked at the group's chaotic deals and said: 'We're already running a fund. Let's make it official.' The informal activity had a track record. It just needed a structure and the discipline to turn it into something institutional."],
+          ["Q4 2024","The Pivot","They explored a hedge fund model until they looked carefully at CEMAC markets. Illiquid. Limited derivatives. No short-selling infrastructure. The data said change. They pivoted to Private Equity and built a flexible capital thesis around the specific failures of the markets they knew."],
+          ["2025","Formalization","The multi-strategy framework took shape. Original capital of $56,719 grew to $167,388 a +195% return in 11 months with zero outside capital. A verifiable track record was underway. The firm's DNA was written."],
           ["2026","The Platform","A $700K capital raise grew to $1.285M. The original capital base continued compounding to $634,800. After partial profit distributions, total AUM reached $1.92M across four active strategies. Real Estate fundraising launched in the U.S."],
         ],
         quote:"\"Everyone is running to where the system is already working. We want to build the system.\" — Noe Ikoué, CIO"},
-      fr:{eyebrow:"Genèse",h:"NOTRE HISTOIRE",body:"L'histoire improbable que personne n'avait vue venir — sauf nous.",
+      fr:{eyebrow:"Genèse",h:"NOTRE HISTOIRE",body:"L'histoire improbable que personne n'avait vue venir sauf nous.",
         timeline:[
-          ["Juin 2024","L'Étincelle","Un groupe d'étudiants — ingénieurs, roboticien et un homme de finance très tenace — ont commencé à prêter de l'argent à leurs amis. Informellement. Avec profit. Régulièrement."],
+          ["Juin 2024","L'Étincelle","Un groupe d'étudiants ingénieurs, roboticien et un homme de finance très tenace ont commencé à prêter de l'argent à leurs amis. Informellement. Avec profit. Régulièrement."],
           ["T3 2024","La Prise de Conscience","Noe Ikoué regarda les transactions chaotiques du groupe et dit : « On gère déjà un fonds. Formalisons la chose. » L'activité informelle avait un historique. Il lui fallait juste une structure."],
-          ["T4 2024","Le Pivot","Ils envisagèrent un hedge fund — jusqu'à l'analyse approfondie des marchés CEMAC. Illiquides. Peu de dérivés. Short selling quasi inexistant. Les données imposaient un changement. Pivot vers le Private Equity."],
-          ["2025","Formalisation","Le cadre multi-stratégies a pris forme. Le capital initial de 56 719 $ a crû jusqu'à 167 388 $ — un rendement de +195% en 11 mois sans capital extérieur."],
+          ["T4 2024","Le Pivot","Ils envisagèrent un hedge fund jusqu'à l'analyse approfondie des marchés CEMAC. Illiquides. Peu de dérivés. Short selling quasi inexistant. Les données imposaient un changement. Pivot vers le Private Equity."],
+          ["2025","Formalisation","Le cadre multi-stratégies a pris forme. Le capital initial de 56 719 $ a crû jusqu'à 167 388 $ un rendement de +195% en 11 mois sans capital extérieur."],
           ["2026","La Plateforme","Une levée de 700 K$ est passée à 1 285 200 $. L'AUM total a atteint 1,92 M$ sur quatre stratégies actives. Lancement de la levée Immobilier aux États-Unis."],
         ],
         quote:"« Tout le monde court là où le système fonctionne déjà. Nous, nous voulons construire le système. » — Noe Ikoué, DII"},
@@ -1180,44 +1180,44 @@ function WhoWeAre({sub}){
     "The Team":{
       en:{h:"The Team",
         people:[
-          {n:"Noe Désiré Ikoué",t:"Co-Founder & CIO",b:"The architect behind Prime Alpha's multi-strategy framework. With a background in economics, finance, and derivatives, Noe leads cross-strategy risk coordination and portfolio design. He formalized the firm's lending operations and built the pivot to the private equity model — from scratch, while still a student.",creds:"BBA Finance · M.Sc. Financial Mathematics"},
-          {n:"Balde Ibrahima",t:"Co-Founder & COO",b:"Leads Prime Commodities Capital with operational depth no spreadsheet can replicate. A Quality Engineer at Michelin, Ibrahima manages physical commodity trading across livestock, textiles, and agriculture — building local sourcing networks across the CEMAC and West African corridor.",creds:"B.Sc. Chemical Engineering · Agribusiness & Trade Flow Specialist"},
-          {n:"Johan A. Botouli",t:"Co-Founder & CTO",b:"Leads all technology infrastructure across the firm and its portfolio holdings. Johan builds the systems that support Prime Alpha's scalability — data pipelines, cloud architecture, and tech-enabled value creation. His robotics and AI background brings systems thinking to investment operations.",creds:"B.Eng. Robotics & AI · AWS-Certified Cloud Engineer, Python Specialist"},
+          {n:"Noe Désiré Ikoué",t:"Co-Founder & CIO",b:"The architect behind Prime Alpha's multi-strategy framework. With a background in economics, finance, and derivatives, Noe leads cross-strategy risk coordination and portfolio design. He formalized the firm's lending operations and built the pivot to the private equity model from scratch, while still a student.",creds:"BBA Finance · M.Sc. Financial Mathematics"},
+          {n:"Balde Ibrahima",t:"Co-Founder & COO",b:"Leads Prime Commodities Capital with operational depth no spreadsheet can replicate. A Quality Engineer at Michelin, Ibrahima manages physical commodity trading across livestock, textiles, and agriculture building local sourcing networks across the CEMAC and West African corridor.",creds:"B.Sc. Chemical Engineering · Agribusiness & Trade Flow Specialist"},
+          {n:"Johan A. Botouli",t:"Co-Founder & CTO",b:"Leads all technology infrastructure across the firm and its portfolio holdings. Johan builds the systems that support Prime Alpha's scalability data pipelines, cloud architecture, and tech-enabled value creation. His robotics and AI background brings systems thinking to investment operations.",creds:"B.Eng. Robotics & AI · AWS-Certified Cloud Engineer, Python Specialist"},
         ]},
       fr:{h:"L'Équipe",
         people:[
-          {n:"Noe Désiré Ikoué",t:"Co-Fondateur & DII",b:"L'architecte du cadre multi-stratégies de Prime Alpha. Avec une formation en économie, finance et dérivés, Noe dirige la coordination des risques inter-stratégies et la conception du portefeuille. Il a formalisé les opérations de prêt de la firme et structuré le pivot vers le private equity — encore étudiant.",creds:"BBA Finance · M.Sc. Mathématiques Financières"},
-          {n:"Balde Ibrahima",t:"Co-Fondateur & DGO",b:"Dirige Prime Commodities Capital avec une profondeur opérationnelle qu'aucun tableur ne peut reproduire. Ingénieur qualité chez Michelin, Ibrahima gère le négoce de matières premières physiques — bétail, textile, agriculture — en construisant des réseaux d'approvisionnement locaux dans le corridor CEMAC et Afrique de l'Ouest.",creds:"B.Sc. Génie Chimique · Spécialiste Agrobusiness & Flux Commerciaux"},
-          {n:"Johan A. Botouli",t:"Co-Fondateur & DTC",b:"Dirige toute l'infrastructure technologique de la firme et de ses participations. Johan construit les systèmes qui soutiennent la scalabilité de Prime Alpha — pipelines de données, architecture cloud, création de valeur technologique.",creds:"B.Eng. Robotique & IA · Ingénieur Cloud AWS Certifié, Spécialiste Python"},
+          {n:"Noe Désiré Ikoué",t:"Co-Fondateur & DII",b:"L'architecte du cadre multi-stratégies de Prime Alpha. Avec une formation en économie, finance et dérivés, Noe dirige la coordination des risques inter-stratégies et la conception du portefeuille. Il a formalisé les opérations de prêt de la firme et structuré le pivot vers le private equity encore étudiant.",creds:"BBA Finance · M.Sc. Mathématiques Financières"},
+          {n:"Balde Ibrahima",t:"Co-Fondateur & DGO",b:"Dirige Prime Commodities Capital avec une profondeur opérationnelle qu'aucun tableur ne peut reproduire. Ingénieur qualité chez Michelin, Ibrahima gère le négoce de matières premières physiques bétail, textile, agriculture en construisant des réseaux d'approvisionnement locaux dans le corridor CEMAC et Afrique de l'Ouest.",creds:"B.Sc. Génie Chimique · Spécialiste Agrobusiness & Flux Commerciaux"},
+          {n:"Johan A. Botouli",t:"Co-Fondateur & DTC",b:"Dirige toute l'infrastructure technologique de la firme et de ses participations. Johan construit les systèmes qui soutiennent la scalabilité de Prime Alpha pipelines de données, architecture cloud, création de valeur technologique.",creds:"B.Eng. Robotique & IA · Ingénieur Cloud AWS Certifié, Spécialiste Python"},
         ]},
     },
     Leadership:{
       en:{h:"The Team",
         people:[
-          {n:"Noe Désiré Ikoué",t:"Co-Founder & CIO",b:"The architect behind Prime Alpha's multi-strategy framework. With a background in economics, finance, and derivatives, Noe leads cross-strategy risk coordination and portfolio design. He formalized the firm's lending operations and built the pivot to the private equity model — from scratch, while still a student.",creds:"BBA Finance · M.Sc. Financial Mathematics"},
+          {n:"Noe Désiré Ikoué",t:"Co-Founder & CIO",b:"The architect behind Prime Alpha's multi-strategy framework. With a background in economics, finance, and derivatives, Noe leads cross-strategy risk coordination and portfolio design. He formalized the firm's lending operations and built the pivot to the private equity model from scratch, while still a student.",creds:"BBA Finance · M.Sc. Financial Mathematics"},
           {n:"Balde Ibrahima",t:"Co-Founder & COO",b:"Leads Prime Commodities Capital with operational depth no spreadsheet can replicate. A Quality Engineer at Michelin, Ibrahima manages physical commodity trading across livestock, textiles, and agriculture.",creds:"B.Sc. Chemical Engineering · Agribusiness & Trade Flow Specialist"},
           {n:"Johan A. Botouli",t:"Co-Founder & CTO",b:"Leads all technology infrastructure across the firm and its portfolio holdings.",creds:"B.Eng. Robotics & AI · AWS-Certified Cloud Engineer, Python Specialist"},
         ]},
       fr:{h:"L'Équipe",
         people:[
-          {n:"Noe Désiré Ikoué",t:"Co-Fondateur & DII",b:"L'architecte du cadre multi-stratégies de Prime Alpha. Avec une formation en économie, finance et dérivés, Noe dirige la coordination des risques inter-stratégies et la conception du portefeuille. Il a formalisé les opérations de prêt de la firme et structuré le pivot vers le private equity — encore étudiant.",creds:"BBA Finance · M.Sc. Mathématiques Financières"},
-          {n:"Balde Ibrahima",t:"Co-Fondateur & DGO",b:"Dirige Prime Commodities Capital avec une profondeur opérationnelle qu'aucun tableur ne peut reproduire. Ingénieur qualité chez Michelin, Ibrahima gère le négoce de matières premières physiques — bétail, textile, agriculture — en construisant des réseaux d'approvisionnement locaux dans le corridor CEMAC et Afrique de l'Ouest.",creds:"B.Sc. Génie Chimique · Spécialiste Agrobusiness & Flux Commerciaux"},
-          {n:"Johan A. Botouli",t:"Co-Fondateur & DTC",b:"Dirige toute l'infrastructure technologique de la firme et de ses participations. Johan construit les systèmes qui soutiennent la scalabilité de Prime Alpha — pipelines de données, architecture cloud, création de valeur technologique. Son background en robotique et IA apporte une pensée systémique.",creds:"B.Eng. Robotique & IA · Ingénieur Cloud AWS Certifié, Spécialiste Python"},
+          {n:"Noe Désiré Ikoué",t:"Co-Fondateur & DII",b:"L'architecte du cadre multi-stratégies de Prime Alpha. Avec une formation en économie, finance et dérivés, Noe dirige la coordination des risques inter-stratégies et la conception du portefeuille. Il a formalisé les opérations de prêt de la firme et structuré le pivot vers le private equity encore étudiant.",creds:"BBA Finance · M.Sc. Mathématiques Financières"},
+          {n:"Balde Ibrahima",t:"Co-Fondateur & DGO",b:"Dirige Prime Commodities Capital avec une profondeur opérationnelle qu'aucun tableur ne peut reproduire. Ingénieur qualité chez Michelin, Ibrahima gère le négoce de matières premières physiques entre le bétail, textile et l'agriculture en construisant des réseaux d'approvisionnement locaux dans le corridor CEMAC et Afrique de l'Ouest.",creds:"B.Sc. Génie Chimique · Spécialiste Agrobusiness & Flux Commerciaux"},
+          {n:"Johan A. Botouli",t:"Co-Fondateur & DTC",b:"Dirige toute l'infrastructure technologique de la firme et de ses participations. Johan construit les systèmes qui soutiennent la scalabilité de Prime Alpha pipelines de données, architecture cloud, création de valeur technologique. Son background en robotique et IA apporte une pensée systémique.",creds:"B.Eng. Robotique & IA · Ingénieur Cloud AWS Certifié, Spécialiste Python"},
         ]},
     },
     "Civic Priorities":{
-      en:{h:"Civic Priorities",body:"We believe that flexible capital carries civic responsibility. The capital market failure we aim to correct is not a generic story — it is a specific diagnosis of where the system fails and why. Our civic priorities grow directly from that diagnosis.",
+      en:{h:"Civic Priorities",body:"We believe that flexible capital carries civic responsibility. The capital market failure we aim to correct is not a generic story it is a specific diagnosis of where the system fails and why. Our civic priorities grow directly from that diagnosis.",
         civics:[
-          ["The Missing Middle","One of our goals is to become the institutional home for companies that generate between $500K and $10M in annual revenue, employ 20 to 200 people, and need $500K to $15M in growth capital. We want to build the infrastructure that closes this gap — one investment at a time."],
-          ["Financial Inclusion as Infrastructure","We are committed to treating access to patient capital as infrastructure, not a luxury. We believe 57% of Africa's population being unbanked is not a cultural fact — it is a structural failure we intend to help correct through our private credit strategy."],
-          ["Local Presence, International Standards","We aim to maintain genuine physical presence in our target markets — not a flag on a map. We want to hire locally, build local networks, and hold ourselves to IFRS accounting and governance standards that institutional LPs can audit without friction."],
-          ["Technology as a Civic Lever","We are committed to building proprietary technology that makes African deal-making more transparent, more efficient, and more scalable. We believe AI-driven due diligence is not a luxury for frontier markets — it is a prerequisite for doing this at scale."],
+          ["The Missing Middle","One of our goals is to become the institutional home for companies that generate between $500K and $10M in annual revenue, employ 20 to 200 people, and need $500K to $15M in growth capital. We want to build the infrastructure that closes this gap one investment at a time."],
+          ["Financial Inclusion as Infrastructure","We are committed to treating access to patient capital as infrastructure, not a luxury. We believe 57% of Africa's population being unbanked is not a cultural fact it is a structural failure we intend to help correct through our private credit strategy."],
+          ["Local Presence, International Standards","We aim to maintain genuine physical presence in our target markets not a flag on a map. We want to hire locally, build local networks, and hold ourselves to IFRS accounting and governance standards that institutional LPs can audit without friction."],
+          ["Technology as a Civic Lever","We are committed to building proprietary technology that makes African deal-making more transparent, more efficient, and more scalable. We believe AI-driven due diligence is not a luxury for frontier markets it is a prerequisite for doing this at scale."],
         ]},
-      fr:{h:"Priorités Civiques",body:"Nous croyons que le capital flexible porte une responsabilité civique. La défaillance du marché des capitaux que nous existons pour corriger n'est pas une histoire générique — c'est un diagnostic précis de l'endroit où le système échoue et pourquoi.",
+      fr:{h:"Priorités Civiques",body:"Nous croyons que le capital flexible porte une responsabilité civique. La défaillance du marché des capitaux que nous existons pour corriger n'est pas une histoire générique c'est un diagnostic précis de l'endroit où le système échoue et pourquoi.",
         civics:[
           ["Le Maillon Manquant","Les entreprises générant 500 K$–10 M$ de chiffre d'affaires annuel, employant 20 à 200 personnes, et nécessitant des capitaux de croissance de 500 K$ à 15 M$ n'ont pas de foyer institutionnel. Trop grandes pour la microfinance, trop informelles pour le PE institutionnel."],
-          ["Pourquoi les Banques Échouent","Les banques commerciales au Sénégal et au Cameroun répondent rationnellement à leurs propres structures d'incitation — souscription basée sur les garanties, dépôts à court terme, KYC calibré pour les entreprises formelles. La plupart des entreprises à forte croissance ne correspondent pas."],
-          ["Inclusion Financière","57% de la population africaine est non bancarisée. Le crédit privé comble un vide structurel de financement. L'accès au capital patient n'est pas un luxe — c'est la différence entre une entreprise qui grandit et une qui stagne."],
+          ["Pourquoi les Banques Échouent","Les banques commerciales au Sénégal et au Cameroun répondent rationnellement à leurs propres structures d'incitation souscription basée sur les garanties, dépôts à court terme, KYC calibré pour les entreprises formelles. La plupart des entreprises à forte croissance ne correspondent pas."],
+          ["Inclusion Financière","57% de la population africaine est non bancarisée. Le crédit privé comble un vide structurel de financement. L'accès au capital patient n'est pas un luxe c'est la différence entre une entreprise qui grandit et une qui stagne."],
           ["Présence Locale, Standards Internationaux","Présence locale signifie présence physique sur le marché, personnel local avec des réseaux opérationnels. Standards internationaux signifie comptabilité IFRS et structures de gouvernance que les LPs institutionnels peuvent auditer sans friction."],
         ]},
     },
@@ -1503,18 +1503,18 @@ function FundTerms(){
     en:{
       eyebrow:"Structure",h:"FUND TERMS",
       sub:"Clear terms. Aligned incentives. We want investors who share our values, our patience, and our conviction in what Africa can become. If you trust us, we will make you a great deal of money.",
-      terms:[["2.0%","Management Fee","Annual, on committed capital"],["20%","Performance Fee","Of profits above the hurdle rate"],["12%","Hurdle Rate","Annual — investors paid first"],["1 Year","Lock-Up Period","Strategy-dependent; capital call structure"]],
+      terms:[["2.0%","Management Fee","Annual, on committed capital"],["20%","Performance Fee","Of profits above the hurdle rate"],["12%","Hurdle Rate","Annual investors paid first"],["1 Year","Lock-Up Period","Strategy-dependent; capital call structure"]],
       thesisTitle:"The Flexible Capital Thesis",
-      thesis:"Flexible capital means the ability to deploy across the capital structure — equity, mezzanine, senior secured debt, and convertible instruments — depending on what a given company actually needs at a given stage. The same company needs different instruments at different stages of its lifecycle. A fund that can only offer one instrument is forced to either pass on good companies at the wrong stage or deploy the wrong instrument. Flexible capital removes that constraint.",
+      thesis:"Flexible capital means the ability to deploy across the capital structure equity, mezzanine, senior secured debt, and convertible instruments depending on what a given company actually needs at a given stage. The same company needs different instruments at different stages of its lifecycle. A fund that can only offer one instrument is forced to either pass on good companies at the wrong stage or deploy the wrong instrument. Flexible capital removes that constraint.",
       thesisPoints:[
-        "A company raising its first institutional round needs equity and founder alignment — lead with minority equity, preserve upside.",
-        "A company with proven revenue but tight margins needs working capital that doesn't dilute — use revenue-based finance or a senior facility.",
-        "A company making a major capital investment needs long-tenor debt — provide a mezzanine bridge while it waits for bank eligibility.",
-        "A company approaching acquisition readiness needs bridge equity and valuation support — provide convertible notes with strategic rights.",
+        "A company raising its first institutional round needs equity and founder alignment lead with minority equity, preserve upside.",
+        "A company with proven revenue but tight margins needs working capital that doesn't dilute use revenue-based finance or a senior facility.",
+        "A company making a major capital investment needs long-tenor debt provide a mezzanine bridge while it waits for bank eligibility.",
+        "A company approaching acquisition readiness needs bridge equity and valuation support provide convertible notes with strategic rights.",
       ],
       howTitle:"How the Fund Works",
       steps:[
-        "Each strategy operates under its own mandate with a dedicated team — PE, Private Credit, Commodities, and Real Estate each have distinct investment processes.",
+        "Each strategy operates under its own mandate with a dedicated team for PE, Private Credit, Commodities, and Real Estate each have distinct investment processes.",
         "Capital calls are deployed across strategies based on mandate and opportunity set. Investors may participate in one or more fund verticals.",
         "Performance is calculated per fund. An 'eat what you kill' culture means every deal team is directly accountable for the returns they generate.",
         "Minimum investment levels and co-investment opportunities are available on a case-by-case basis. Contact us to discuss your allocation.",
@@ -1529,18 +1529,18 @@ function FundTerms(){
     fr:{
       eyebrow:"Structure",h:"CONDITIONS DU FONDS",
       sub:"Des conditions claires. Des intérêts alignés. Nous cherchons des investisseurs qui partagent nos valeurs, notre patience et notre conviction dans ce que l'Afrique peut devenir.",
-      terms:[["2,0%","Frais de Gestion","Annuels, sur le capital engagé"],["20%","Frais de Performance","Des profits au-dessus du taux plancher"],["12%","Taux Plancher","Annuel — les investisseurs sont payés en premier"],["1 An","Période de Blocage","Selon la stratégie ; structure de capital calls"]],
+      terms:[["2,0%","Frais de Gestion","Annuels, sur le capital engagé"],["20%","Frais de Performance","Des profits au-dessus du taux plancher"],["12%","Taux Plancher","Annuel les investisseurs sont payés en premier"],["1 An","Période de Blocage","Selon la stratégie ; structure de capital calls"]],
       thesisTitle:"La Thèse du Capital Flexible",
-      thesis:"Le capital flexible signifie la capacité de déployer sur toute la structure du capital — equity, mezzanine, dette senior sécurisée, instruments convertibles — selon ce dont une entreprise a réellement besoin à un stade donné. La même entreprise a besoin d'instruments différents à différentes étapes de son cycle de vie.",
+      thesis:"Le capital flexible signifie la capacité de déployer sur toute la structure du capital equity, mezzanine, dette senior sécurisée, instruments convertibles selon ce dont une entreprise a réellement besoin à un stade donné. La même entreprise a besoin d'instruments différents à différentes étapes de son cycle de vie.",
       thesisPoints:[
         "Une entreprise levant son premier tour institutionnel a besoin d'equity et d'alignement avec les fondateurs.",
         "Une entreprise avec des revenus prouvés mais des marges serrées a besoin de fonds de roulement sans dilution.",
-        "Une entreprise réalisant un investissement en capital majeur a besoin d'une dette à long terme — nous fournissons un bridge mezzanine.",
-        "Une entreprise approchant de l'acquisition a besoin d'equity bridge — nous fournissons des billets convertibles avec droits stratégiques.",
+        "Une entreprise réalisant un investissement en capital majeur a besoin d'une dette à long terme nous fournissons un bridge mezzanine.",
+        "Une entreprise approchant de l'acquisition a besoin d'equity bridge nous fournissons des billets convertibles avec droits stratégiques.",
       ],
       howTitle:"Comment Fonctionne le Fonds",
       steps:[
-        "Chaque stratégie opère sous son propre mandat avec une équipe dédiée — PE, Crédit Privé, Matières Premières et Immobilier ont chacun leurs propres processus d'investissement.",
+        "Chaque stratégie opère sous son propre mandat avec une équipe dédiée PE, Crédit Privé, Matières Premières et Immobilier ont chacun leurs propres processus d'investissement.",
         "Les capital calls sont déployés selon le mandat et les opportunités. Les investisseurs participent à un ou plusieurs fonds verticaux.",
         "Les commissions de performance sont calculées par fonds. La culture 'on mange ce qu'on chasse' signifie que chaque équipe est comptable des rendements générés.",
         "Les montants minimums d'investissement et les opportunités de co-investissement sont disponibles au cas par cas. Contactez-nous.",
@@ -2002,8 +2002,8 @@ const RESEARCH_SEED=[
   {articleId:"seed-6",
     category:"International Trade Correlations",category_fr:"Corrélations du Commerce International",
     title:"Cross-Border Livestock Markets: Arbitrage and Risk",title_fr:"Marchés Transfrontaliers de Bétail : Arbitrage et Risques",
-    excerpt:"Physical commodity arbitrage opportunities across the Chad–Cameroon–Nigeria corridor — structural pricing inefficiencies and how we are deploying capital to capture them.",
-    excerpt_fr:"Opportunités d'arbitrage sur matières premières physiques dans le corridor Tchad–Cameroun–Nigeria — inefficacités structurelles de prix et comment nous déployons des capitaux pour les saisir.",
+    excerpt:"Physical commodity arbitrage opportunities across the Chad–Cameroon–Nigeria corridor structural pricing inefficiencies and how we are deploying capital to capture them.",
+    excerpt_fr:"Opportunités d'arbitrage sur matières premières physiques dans le corridor Tchad–Cameroun–Nigeria  inefficacités structurelles de prix et comment nous déployons des capitaux pour les saisir.",
     date:"2025-11-15",author:"Balde Ibrahima"},
   {articleId:"seed-7",
     category:"Market Direction",category_fr:"Tendances de Marché",
@@ -2020,14 +2020,14 @@ const RESEARCH_SEED=[
   {articleId:"seed-9",
     category:"Shift Towards AI",category_fr:"Virage vers l'IA",
     title:"The Case for AI-Native Investment Operations",title_fr:"Pour des Opérations d'Investissement Natives à l'IA",
-    excerpt:"Traditional fund operations — from LP reporting to compliance monitoring — are built for a world of scarce data and expensive analysis. AI changes both assumptions. We explain how we are rebuilding from scratch.",
-    excerpt_fr:"Les opérations traditionnelles de fonds — du reporting LP au suivi de conformité — sont construites pour un monde de données rares et d'analyses coûteuses. L'IA change les deux hypothèses. Nous expliquons comment nous reconstruisons de zéro.",
+    excerpt:"Traditional fund operations, from LP reporting to compliance monitoring  are built for a world of scarce data and expensive analysis. AI changes both assumptions. We explain how we are rebuilding from scratch.",
+    excerpt_fr:"Les opérations traditionnelles de fonds du reporting LP au suivi de conformité sont construites pour un monde de données rares et d'analyses coûteuses. L'IA change les deux hypothèses. Nous expliquons comment nous reconstruisons de zéro.",
     date:"2026-03-10",author:"Johan A. Botouli"},
   {articleId:"seed-10",
     category:"Shift Towards AI",category_fr:"Virage vers l'IA",
     title:"Generative AI in Financial Due Diligence: Risks and Rewards",title_fr:"IA Générative en Due Diligence Financière : Risques et Opportunités",
-    excerpt:"We test five leading LLMs against a real CEMAC credit application. Accuracy, hallucination rate, and practical utility — a frank assessment from a team that has moved from experimentation to deployment.",
-    excerpt_fr:"Nous testons cinq LLMs de pointe sur une vraie demande de crédit CEMAC. Précision, taux d'hallucination et utilité pratique — une évaluation franche d'une équipe passée de l'expérimentation au déploiement.",
+    excerpt:"We test five leading LLMs against a real CEMAC credit application. Accuracy, hallucination rate, and practical utility; a frank assessment from a team that has moved from experimentation to deployment.",
+    excerpt_fr:"Nous testons cinq LLMs de pointe sur une vraie demande de crédit CEMAC. Précision, taux d'hallucination et utilité pratique; une évaluation franche d'une équipe passée de l'expérimentation au déploiement.",
     date:"2026-02-05",author:"Johan A. Botouli"},
 ];
 
@@ -3324,7 +3324,7 @@ function Investors(){
       {icon:"◆",t:"Patient Capital",d:"We deploy capital on a 3–7 year horizon, aligned with the real operating cycles of African businesses. No artificial urgency, no forced exits."},
       {icon:"◆",t:"Pan-African Coverage",d:"Active presence across CEMAC and West African markets, with a growing U.S. Real Estate platform. Four strategies, one integrated framework."},
       {icon:"◆",t:"Verifiable Track Record",d:"153.7% blended return across all capital ever deployed. Auditable. No outside capital for the first 11 months of operation."},
-      {icon:"◆",t:"Institutional Standards",d:"IFRS accounting, quarterly LP reporting, IC-level governance, and zero-tolerance compliance policies — regardless of market informality."},
+      {icon:"◆",t:"Institutional Standards",d:"IFRS accounting, quarterly LP reporting, IC-level governance, and zero-tolerance compliance policies regardless of market informality."},
     ]
     :[
       {icon:"◆",t:"Capital Patient",d:"Nous déployons des capitaux sur un horizon de 3 à 7 ans, aligné sur les cycles opérationnels réels des entreprises africaines."},
@@ -3437,7 +3437,7 @@ export default function App(){
 
   // Document title
   useEffect(()=>{
-    document.title = page==="investor" ? "Investor Portal — Prime Alpha Securities" : page==="worker" ? "Team Console — Prime Alpha Securities" : "Prime Alpha Securities";
+    document.title = page==="investor" ? "Investor Portal. Prime Alpha Securities" : page==="worker" ? "Team Console. Prime Alpha Securities" : "Prime Alpha Securities";
   },[]);
 
   // Browser back/forward
