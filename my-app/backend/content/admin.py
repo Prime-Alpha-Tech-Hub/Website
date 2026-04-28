@@ -1,5 +1,42 @@
 from django.contrib import admin
-from .models import HeroSection, Section, Feature, Testimonial, CallToAction, SiteSettings
+from .models import (
+    HeroSection, Section, Feature, Testimonial, CallToAction, SiteSettings,
+    InvestorPageWhyCard, InvestorPageStrategy, InvestorPageQualification
+)
+
+
+@admin.register(InvestorPageWhyCard)
+class InvestorPageWhyCardAdmin(admin.ModelAdmin):
+    list_display = ('title_en', 'order')
+    fieldsets = (
+        ('English', {'fields': ('title_en', 'description_en')}),
+        ('Français', {'fields': ('title_fr', 'description_fr')}),
+        ('Display', {'fields': ('icon', 'order')}),
+    )
+    ordering = ('order',)
+
+
+@admin.register(InvestorPageStrategy)
+class InvestorPageStrategyAdmin(admin.ModelAdmin):
+    list_display = ('code', 'name_en', 'order')
+    fieldsets = (
+        ('English', {'fields': ('name_en', 'description_en')}),
+        ('Français', {'fields': ('name_fr', 'description_fr')}),
+        ('Details', {'fields': ('code', 'page')}),
+        ('Display', {'fields': ('order',)}),
+    )
+    ordering = ('order',)
+
+
+@admin.register(InvestorPageQualification)
+class InvestorPageQualificationAdmin(admin.ModelAdmin):
+    list_display = ('order',)
+    fieldsets = (
+        ('English', {'fields': ('text_en',)}),
+        ('Français', {'fields': ('text_fr',)}),
+        ('Display', {'fields': ('order',)}),
+    )
+    ordering = ('order',)
 
 
 @admin.register(HeroSection)

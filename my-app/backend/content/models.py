@@ -1,6 +1,52 @@
 from django.db import models
 
 
+class InvestorPageWhyCard(models.Model):
+    order = models.PositiveIntegerField(default=0)
+    title_en = models.CharField(max_length=150)
+    title_fr = models.CharField(max_length=150)
+    description_en = models.TextField()
+    description_fr = models.TextField()
+    icon = models.CharField(max_length=1, default="◆")
+
+    def __str__(self):
+        return self.title_en
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Investor Page - Why Card'
+
+
+class InvestorPageStrategy(models.Model):
+    order = models.PositiveIntegerField(default=0)
+    name_en = models.CharField(max_length=150)
+    name_fr = models.CharField(max_length=150)
+    code = models.CharField(max_length=10)
+    description_en = models.TextField()
+    description_fr = models.TextField()
+    page = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.code}: {self.name_en}"
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Investor Page - Strategy'
+
+
+class InvestorPageQualification(models.Model):
+    order = models.PositiveIntegerField(default=0)
+    text_en = models.TextField()
+    text_fr = models.TextField()
+
+    def __str__(self):
+        return f"Qualification {self.order}"
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Investor Page - Qualification'
+
+
 class HeroSection(models.Model):
     title = models.CharField(max_length=200)
     subtitle = models.TextField()

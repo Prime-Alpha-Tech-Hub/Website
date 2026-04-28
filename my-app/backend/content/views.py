@@ -2,10 +2,15 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from .models import HeroSection, Section, Feature, Testimonial, CallToAction, SiteSettings
+from .models import (
+    HeroSection, Section, Feature, Testimonial, CallToAction, SiteSettings,
+    InvestorPageWhyCard, InvestorPageStrategy, InvestorPageQualification
+)
 from .serializers import (
     HeroSectionSerializer, SectionSerializer, FeatureSerializer,
-    TestimonialSerializer, CallToActionSerializer, SiteSettingsSerializer
+    TestimonialSerializer, CallToActionSerializer, SiteSettingsSerializer,
+    InvestorPageWhyCardSerializer, InvestorPageStrategySerializer,
+    InvestorPageQualificationSerializer
 )
 
 
@@ -60,3 +65,21 @@ class SiteSettingsViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class InvestorPageWhyCardViewSet(viewsets.ModelViewSet):
+    queryset = InvestorPageWhyCard.objects.all().order_by('order')
+    serializer_class = InvestorPageWhyCardSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class InvestorPageStrategyViewSet(viewsets.ModelViewSet):
+    queryset = InvestorPageStrategy.objects.all().order_by('order')
+    serializer_class = InvestorPageStrategySerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class InvestorPageQualificationViewSet(viewsets.ModelViewSet):
+    queryset = InvestorPageQualification.objects.all().order_by('order')
+    serializer_class = InvestorPageQualificationSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]

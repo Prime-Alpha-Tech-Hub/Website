@@ -3320,28 +3320,29 @@ function WWorkers({workers,addWorker,updateWorker,removeWorker,showToast}){
 // ─────────────────────────────────────────────────────────────────────────────
 function Investors(){
   const [lang]=useLang();
-  const why=lang==="en"
-    ?[
-      {icon:"◆",t:"Patient Capital",d:"We deploy capital on a 3–7 year horizon, aligned with the real operating cycles of African businesses. No artificial urgency, no forced exits."},
-      {icon:"◆",t:"Pan-African Coverage",d:"Active presence across CEMAC and West African markets, with a growing U.S. Real Estate platform. Four strategies, one integrated framework."},
-      {icon:"◆",t:"Verifiable Track Record",d:"153.7% blended return across all capital ever deployed. Auditable. No outside capital for the first 11 months of operation."},
-      {icon:"◆",t:"Institutional Standards",d:"IFRS accounting, quarterly LP reporting, IC-level governance, and zero-tolerance compliance policies regardless of market informality."},
-    ]
-    :[
-      {icon:"◆",t:"Capital Patient",d:"Nous déployons des capitaux sur un horizon de 3 à 7 ans, aligné sur les cycles opérationnels réels des entreprises africaines."},
-      {icon:"◆",t:"Couverture Panafricaine",d:"Présence active en CEMAC et Afrique de l'Ouest, avec une plateforme Immobilier en croissance aux États-Unis."},
-      {icon:"◆",t:"Historique Vérifiable",d:"153,7% de rendement pondéré sur l'ensemble des capitaux déployés. Auditable. Sans capital extérieur durant les 11 premiers mois."},
-      {icon:"◆",t:"Standards Institutionnels",d:"Comptabilité IFRS, reporting LP trimestriel, gouvernance IC, et politiques de conformité à tolérance zéro."},
-    ];
-  const strategies=lang==="en"
-    ?[["Private Equity","PE","Controlling stakes in African mid-market businesses. 3–7yr hold.","Private Equity"],
-      ["Private Credit","PC","Direct lending to under-banked West African companies. Zero drawdowns to date.","Private Credit"],
-      ["Real Estate","RE","U.S. residential and multifamily. Fix-and-flip, buy-and-hold. Currently fundraising.","Real Estate"],
-      ["Commodities","COM","Physical commodity trading across textiles, agriculture, livestock. CEMAC corridor.","Commodities"]]
-    :[["Private Equity","PE","Participations dans les PME africaines. Horizon 3–7 ans.","Private Equity"],
-      ["Crédit Privé","PC","Prêts directs aux PME non servies par les banques. Zéro défaut à ce jour.","Private Credit"],
-      ["Immobilier","RE","Résidentiel et multifamilial aux États-Unis. En levée de fonds.","Real Estate"],
-      ["Matières Premières","COM","Commerce de matières premières physiques en CEMAC.","Commodities"]];
+  const [why,setWhy]=useState([]);
+  const [strategies,setStrategies]=useState([]);
+  const [qualifications,setQualifications]=useState([]);
+
+  useEffect(()=>{
+    Promise.all([
+      fetch('/api/content/investor-why-cards/').then(r=>r.json()),
+      fetch('/api/content/investor-strategies/').then(r=>r.json()),
+      fetch('/api/content/investor-qualifications/').then(r=>r.json()),
+    ]).then(([whyData,stratData,qualData])=>{
+      if(Array.isArray(whyData)){
+        const cards=whyData.map(c=>({icon:c.icon,t:lang==="en"?c.title_en:c.title_fr,d:lang==="en"?c.description_en:c.description_fr}));
+        setWhy(cards);
+      }
+      if(Array.isArray(stratData)){
+        const strats=stratData.map(s=>[lang==="en"?s.name_en:s.name_fr,s.code,lang==="en"?s.description_en:s.description_fr,s.page]);
+        setStrategies(strats);
+      }
+      if(Array.isArray(qualData)){
+        setQualifications(qualData.map(q=>lang==="en"?q.text_en:q.text_fr));
+      }
+    }).catch(e=>console.error("Failed to load investor content:",e));
+  },[lang]);
   return(
     <div>
       <PageHero eyebrow={lang==="en"?"For Investors":"Pour les Investisseurs"} title={lang==="en"?"PARTNER WITH US":"INVESTISSEZ AVEC NOUS"}
@@ -3352,7 +3353,7 @@ function Investors(){
         <div style={{marginBottom:56}}>
           <h2 style={{...T.hdg,fontSize:26,marginBottom:8}}>{lang==="en"?"Why Prime Alpha":"Pourquoi Prime Alpha"}</h2>
           <p style={{color:"var(--dim)",marginBottom:32,lineHeight:1.8}}>{lang==="en"?"Four reasons institutional investors choose us as their partner in African private markets.":"Quatre raisons pour lesquelles les investisseurs institutionnels nous choisissent comme partenaires."}</p>
-          <div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+          <div className="rg-2" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))",gap:20}}>
             {why.map((w,i)=>(
               <div key={w.t} style={{...T.card,borderTop:"3px solid var(--blue)"}} data-animate data-delay={String(i+1)}>
                 <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:"var(--blue)",marginBottom:10}}>{w.icon} {w.t}</div>
@@ -3365,7 +3366,7 @@ function Investors(){
         {/* Fund Strategies */}
         <div style={{marginBottom:56}}>
           <h2 style={{...T.hdg,fontSize:26,marginBottom:32}}>{lang==="en"?"Fund Strategies":"Stratégies de Fonds"}</h2>
-          <div className="rg-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+          <div className="rg-2" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(300px, 1fr))",gap:16}}>
             {strategies.map(([name,code,desc,page],i)=>(
               <div key={code} style={{...T.card,cursor:"pointer",borderLeft:"3px solid var(--blue)",transition:"box-shadow 0.15s"}} data-animate data-delay={String(i+1)}
                 onClick={()=>navigate(page)}
@@ -3383,16 +3384,7 @@ function Investors(){
         {/* Investor Qualifications */}
         <div style={{...T.card,marginBottom:40,borderLeft:"3px solid var(--blue)"}}>
           <h2 style={{...T.hdg,fontSize:22,marginBottom:16}}>{lang==="en"?"Investor Qualifications":"Qualifications des Investisseurs"}</h2>
-          {(lang==="en"
-            ?["Qualified institutional investors (pension funds, endowments, insurance companies, sovereign wealth funds)",
-              "Family offices with $5M+ in investable assets and a minimum 3-year investment horizon",
-              "High-net-worth individuals meeting accredited investor standards in their respective jurisdiction",
-              "Strategic co-investors with sector expertise in African private markets"]
-            :["Investisseurs institutionnels qualifiés (fonds de pension, dotations, compagnies d'assurance, fonds souverains)",
-              "Family offices avec 5M$+ d'actifs investissables et un horizon d'investissement minimum de 3 ans",
-              "Particuliers fortunés répondant aux critères d'investisseur accrédité dans leur juridiction",
-              "Co-investisseurs stratégiques avec expertise sectorielle dans les marchés privés africains"]
-          ).map((q,i)=>(
+          {qualifications.map((q,i)=>(
             <div key={i} style={{display:"flex",gap:12,marginBottom:12}}>
               <div style={{width:6,height:6,borderRadius:"50%",background:"var(--blue)",flexShrink:0,marginTop:8}}/>
               <p style={{color:"var(--body)",fontSize:14,lineHeight:1.75,margin:0}}>{q}</p>
