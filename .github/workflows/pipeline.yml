@@ -3,193 +3,100 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
+env:
+  EC2_USER: ubuntu
+  EC2_HOST: ec2-18-130-159-18.eu-west-2.compute.amazonaws.com
+  APP_DIR: /home/ubuntu/Prime-Alpha-Securities/my-app
+  WORKSPACE_DIR: ./my-app
+
 jobs:
-  # Job 1: Checkout and build
   build:
     runs-on: ubuntu-latest
-    outputs:
-      build-status: ${{ job.status }}
-    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          cat > ~/.ssh/webkey.pem << 'KEYEOF'
+-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEA1cEal1COUqtE6lbDARlb3LZtJgbQM3C9i+dVhRdbErhtNMJ7
+6D+pbE5Qy4CwmmYVbIr/EKj3qKf3D/NhQombraLN+j2ic3W8AgqfHVptaUy0CYs4
+i6rvsbl83DF1jDv4dJit6sFTjkheXcHzkIG2jWoz6QAeAIeyBfBHoIyxfUpBETjs
+A8YfpfCRbhFiuypQcKn8Nw95hyoBlK0pm/R7akTDOcw/M6Rbe8eQ5CHG5FOjlX+C
+d4mWMrHcTa1BkksPfo02XoNwNILCoAAwz7wlPUP/q41tjIwlQxbTUZT/nJDJIhvv
+POpMgofafXdsmjrVv8hGIyGYkr9PiNSQwRMUxwIDAQABAoIBAD2oLdtnySXfcUmH
+LUir3+uSU3mcjYHJC2PHnst9KTAFMrr9PnCHrH8pN/T7cfWXbKaakWhk1Ms5Z/KZ
+6Xwf5V/4jiGYlbtoQor0NWFqLBUrouL93Zmr/Ofu8S0ytw10Xv6C6+fDTC7GgTHa
+OD9+qwGvmLmk5wKQIbHE1WRiMPBKa/Zhc2660fqzRdIw08X/hyCeRaSY0lHiPXD7
+bZk373XR0IbHr6Ne/waLCJtm6ruI4EcUXiSI25XeTHJu3tbO7tyztQJSTsXiH1+M
+0DtS2mTaGoD4wPi48RarL5K0yp43YWhzuXNgIIPX1v3AZoVQ6O5TZkE4b9w/rVs1
+VKPx5kECgYEA6pyMYzCRsVWZTRiKJoIOlKZWOPjoACdIrTl/C3EVvdaCDi6gYsQR
+dDunK6PpJw5lMkd2/yqVIdXzyq5CWy6SYMrGSmuwXbpsUMalhXME0OAiWEucHVaU
+Kdp/eIs7TrtT3yKl0mqijhbCCJk/xqp4mi22IBT7SIdSB9xPYRa6kgMCgYEA6T3I
+PoDkd/1Iomejieqgs6nAxemQW97KC9XOQkn/BAbMC+v3qgSONl6mT7aID39uAwS8
+EI9FRa+z9k/aeD4M5EefP0lJXHfop8c0iarkwOvbyQahAmerXQZ9DXNp3o6of2WN
+tEnc3voDpFB0QkwtgoqlNUSpK0FGzHSwvVpN+O0CgYBAEmTcqeUAEyp8vZjtD1PA
+EPU3NfLWJ+RXOn6Rt16Cq9R03xL6JiXGIoxzBJ6mBe5pHs9GvHBh/zZHQfPpRvy+
+5mHk7SgLUOBH5xhJK7JDARMgHfYSpRRtobhySUP3Kn2rUKEMqAag22I+Suv565Bo
+OtekR1ag5iPm9anQEA7/1QKBgQCjNIoDwmkb1O2YRnDWtojQbr3nPrG2t0Ql1+vF
+0sVQ6fipduoL27gvLzesm4rFXWN7VTrLU5UjV/jTJ7k1XiXjLoKt4/gjbfwsOmX2
+1s/OdruKBMtxRV1RcJLccJ/qDWS2EDeBqhWVKNiXh3xyT5+gsqc7iNne3IRP2G87
+cA8TWQKBgDWHyS/sG1AwBKxgmcFmCvoX0cUsdJQom6CY1daHkfJW8TBse6ZW0+aL
+2+2GisK5vs1ShIMJ1Q5LwGa4EmlgAkjXckMu5PdlBYu/5Y93QQrAGjpPl2CyHEpa
+7BdkopZ2yminp98yY0Ehn4Jv52D/cere16tIbioOR0T0heC3n57+
+-----END RSA PRIVATE KEY-----
+KEYEOF
+          chmod 600 ~/.ssh/webkey.pem
+          ssh-keyscan -H ${{ env.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Package Project
         run: |
-          echo "📦 Preparing deployment package..."
-          
-          rm -rf build
-          mkdir -p build
-          
-          rsync -av \
-            --exclude node_modules \
-            --exclude dist \
-            --exclude build \
-            --exclude .git \
-            --exclude .gitignore \
-            ./my-app/ build/
-          
-          echo "✅ Package prepared"
-
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifact
-          path: build/
-          retention-days: 1
-
-  # Job 2: Verify SSH connection
-  verify-connection:
-    runs-on: ubuntu-latest
-    needs: build
-    
-    steps:
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          
-          # Write private key with proper handling
-          cat > ~/.ssh/webkey.pem << 'EOF'
-          ${{ secrets.EC2_PRIVATE_KEY }}
-          EOF
-          
-          chmod 600 ~/.ssh/webkey.pem
-          
-          # Verify key format
-          echo "🔑 Verifying SSH key format..."
-          if head -1 ~/.ssh/webkey.pem | grep -q "BEGIN"; then
-            echo "✅ SSH key format is valid"
-          else
-            echo "❌ SSH key format is invalid"
-            exit 1
-          fi
-          
-          # Add EC2 host to known hosts
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          cd ${{ env.WORKSPACE_DIR }}
+          echo "📦 Preparing deployment from ./my-app..."
+          ls -la | head -15
+          echo "✅ Files ready for deployment"
 
       - name: Verify SSH Connection
         run: |
-          echo "🔗 Verifying SSH connection to EC2..."
-          ssh -vvv \
-              -o StrictHostKeyChecking=no \
+          echo "🔗 Testing SSH connection..."
+          ssh -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=~/.ssh/known_hosts \
               -i ~/.ssh/webkey.pem \
-              ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-              "echo 'SSH connection successful' && uname -a"
-
-      - name: Cleanup SSH Key
-        if: always()
-        run: |
-          rm -f ~/.ssh/webkey.pem
-          rm -f ~/.ssh/known_hosts
-
-  # Job 3: Upload to EC2
-  upload:
-    runs-on: ubuntu-latest
-    needs: [build, verify-connection]
-    
-    steps:
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifact
-          path: build/
-
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          
-          # Write private key with proper handling
-          cat > ~/.ssh/webkey.pem << 'EOF'
-          ${{ secrets.EC2_PRIVATE_KEY }}
-          EOF
-          
-          chmod 600 ~/.ssh/webkey.pem
-          
-          # Verify key format
-          echo "🔑 Verifying SSH key format..."
-          if head -1 ~/.ssh/webkey.pem | grep -q "BEGIN"; then
-            echo "✅ SSH key format is valid"
-          else
-            echo "❌ SSH key format is invalid"
-            exit 1
-          fi
-          
-          # Add EC2 host to known hosts
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+              ${{ env.EC2_USER }}@${{ env.EC2_HOST }} \
+              "echo '✅ SSH connection successful' && hostname && pwd"
 
       - name: Create Remote Directory
         run: |
           ssh -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=~/.ssh/known_hosts \
               -i ~/.ssh/webkey.pem \
-              ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-              "mkdir -p ${{ secrets.APP_DIR }}"
+              ${{ env.EC2_USER }}@${{ env.EC2_HOST }} \
+              "mkdir -p ${{ env.APP_DIR }}"
 
       - name: Upload Files to EC2
         run: |
-          echo "📤 Uploading files to EC2..."
-          
+          echo "📤 Uploading files from ./my-app to EC2..."
+          cd ${{ env.WORKSPACE_DIR }}
+
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/webkey.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=~/.ssh/known_hosts" \
-            build/ \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.APP_DIR }}/
-          
+            . \
+            ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:${{ env.APP_DIR }}/
+
           echo "✅ Files uploaded successfully"
-
-      - name: Cleanup SSH Key
-        if: always()
-        run: |
-          rm -f ~/.ssh/webkey.pem
-          rm -f ~/.ssh/known_hosts
-
-  # Job 4: Run deployment script
-  deploy:
-    runs-on: ubuntu-latest
-    needs: upload
-    
-    steps:
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          
-          # Write private key with proper handling
-          cat > ~/.ssh/webkey.pem << 'EOF'
-          ${{ secrets.EC2_PRIVATE_KEY }}
-          EOF
-          
-          chmod 600 ~/.ssh/webkey.pem
-          
-          # Verify key format
-          echo "🔑 Verifying SSH key format..."
-          if head -1 ~/.ssh/webkey.pem | grep -q "BEGIN"; then
-            echo "✅ SSH key format is valid"
-          else
-            echo "❌ SSH key format is invalid"
-            exit 1
-          fi
-          
-          # Add EC2 host to known hosts
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Run Deploy Script
         run: |
-          echo "🚀 Running deployment script on EC2..."
+          echo "🚀 Running deployment script..."
           ssh -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=~/.ssh/known_hosts \
               -i ~/.ssh/webkey.pem \
-              ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-              "cd ${{ secrets.APP_DIR }} && \
+              ${{ env.EC2_USER }}@${{ env.EC2_HOST }} \
+              "cd ${{ env.APP_DIR }} && \
                chmod +x deploy.sh && \
                sudo bash ./deploy.sh"
 
@@ -199,22 +106,12 @@ jobs:
           rm -f ~/.ssh/webkey.pem
           rm -f ~/.ssh/known_hosts
 
-  # Job 5: Notification/Status
-  notify:
-    runs-on: ubuntu-latest
-    needs: [build, verify-connection, upload, deploy]
-    if: always()
-    
-    steps:
-      - name: Deployment Success
-        if: success()
+      - name: Deployment Status
+        if: always()
         run: |
-          echo "✅ Deployment to ${{ secrets.EC2_HOST }} completed successfully!"
-          echo "All jobs finished with status: SUCCESS"
-
-      - name: Deployment Failure
-        if: failure()
-        run: |
-          echo "❌ Deployment failed! Check logs above."
-          echo "Failed jobs need investigation."
-          exit 1
+          if [ $? -eq 0 ]; then
+            echo "✅ Deployment to ${{ env.EC2_HOST }} completed successfully!"
+          else
+            echo "❌ Deployment failed! Check logs above."
+            exit 1
+          fi
